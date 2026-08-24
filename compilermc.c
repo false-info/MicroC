@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 int MODE_X86_64 = 0;
 
@@ -70,8 +71,15 @@ void parser_microc(const char **src) {
 }
 
 int main() {
-  const char *code = "head(asm-x86-64)";
-  const char *p_code = code;
-  parser_microc(&p_code);
+  FILE *file = fopen("test.mc", "r");
+  if (file = NULL) {
+    printf("error: could not open test.mc");
+    return 1;
+  }
+  char *buffer = malloc(46 + 1);
+  fread(buffer, 1, 46, file);
+  buffer[46] = '\0';
+  fclose(file);
+  free(buffer);
   return 0;
 }
