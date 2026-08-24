@@ -32,7 +32,27 @@ void parser_microc(const char **src) {
       }
       while ((*p == '\n') || (*p == '\t') || (*p == ' ')) {
         p++;
-      } else {
+      }
+      if (strncmp(p, "(asmb)", 6) == 0) {
+        p += 6;
+        printf("asmb found and opened\n");
+      
+            while ((*p == '\n') || (*p == '\t') || (*p == ' ')) {
+              p++;
+            }
+          if (*p == '{') {
+            p++;
+          
+            if (strncmp(p, "asme", 6) == 0) {
+              p++;
+              while (*p != '}' && *p != '\0') {
+                putchar(*p);
+                p++;
+              }
+            }
+          }
+        }
+      else {
         printf("\nerror missing end of head block \")\"\n");
       }
     } else {
