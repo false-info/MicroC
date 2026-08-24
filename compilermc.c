@@ -58,10 +58,7 @@ void parser_microc(const char **src) {
               printf("error (asme) not found\n");
             }
             
-          }
         }
-      else {
-        printf("\nerror missing end of head block \")\"\n");
       }
     } else {
       printf("\nerror missing start of head block \"(\"\n");
