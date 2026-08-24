@@ -36,20 +36,28 @@ void parser_microc(const char **src) {
       if (strncmp(p, "(asmb)", 6) == 0) {
         p += 6;
         printf("asmb found and opened\n");
-      
             while ((*p == '\n') || (*p == '\t') || (*p == ' ')) {
               p++;
             }
           if (*p == '{') {
             p++;
-          
-            if (strncmp(p, "asme", 6) == 0) {
+            while (*p != '}' && *p != '\0') {
+              putchar(*p);
               p++;
-              while (*p != '}' && *p != '\0') {
-                putchar(*p);
-                p++;
-              }
             }
+            if (*p == '}') {
+              p++;
+            }
+            while ((*p == '\n') || (*p == '\t') || (*p == ' ')) {
+              p++;
+            }
+            if (strncmp(p, "(asme)", 6) == 0) {
+              p += 6;
+              printf("asme found and closed");
+            } else {
+              printf("error (asme) not found\n");
+            }
+            
           }
         }
       else {
