@@ -2,7 +2,7 @@
 #include <string.h>
 
 void parser_microc(const char **src) {
-  const chat p = *src;
+  const char *p = *src;
   if (strcmp(p, "head", 4) == 0) {
     p += 4;
 
