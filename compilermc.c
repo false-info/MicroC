@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 
-void parser_microc(const char *src) {
+void parser_microc(const char **src) {
+  const chat p = *src;
   if (strcmp(p, "head", 4) == 0) {
     p += 4;
 
