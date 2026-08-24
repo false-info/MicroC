@@ -5,7 +5,7 @@ int MODE_X86_64 = 0;
 
 void parser_microc(const char **src) {
   const char *p = *src;
-  if ((*p == '\n')(*p == 't\')(*p == ' ')){
+  if ((*p == '\n') || (*p == 't\') || (*p == ' ')){
     p++;
     
   if (strncmp(p, "head", 4) == 0) {
