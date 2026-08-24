@@ -29,6 +29,9 @@ void parser_microc(const char **src) {
       if (*p == ')') {  
         printf("\nhead block closed\n");
         p++;
+      }
+      while ((*p == '\n') || (*p == '\t') || (*p == ' ')) {
+        p++;
       } else {
         printf("\nerror missing end of head block \")\"\n");
       }
