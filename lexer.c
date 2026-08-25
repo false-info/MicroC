@@ -16,6 +16,8 @@ void tokenize(char* source) {
                     i += 6;
                     break;
                 }
+                putchar(source[i]);
+                i++;            
             }
             continue;
         }
