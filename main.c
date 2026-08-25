@@ -4,7 +4,7 @@
 void tokenize(char* source);
 
 int main(int argc, char* argv[]) {
-    // Kolla argc istället för argv för att förhindra krascher
+    
     if (argc < 2 || argv[1] == NULL) { 
         printf("error: found no file run the right command example ./microc test.mc\n");
         return 1;
