@@ -71,6 +71,17 @@ void generate_binary(const char *input_filename) {
             fputc(0xF4, file);
             bytes_written++;
         }
+        else if (strcmp(cmd, "pad_boot") == 0){
+            while (bytes_written < 510) {
+                fputc(0x00, file);
+                bytes_written++;
+            }
+        }
+        else if (strcmp(cmd, "sign_boot") == 0) {
+            fputc(0x55, file);
+            fputc(0xAA, file);
+            bytes_written += 2;
+        }
         else if (strcmp(cmd, "nop") == 0) {
             fputc(0x90, file);
             bytes_written++;
