@@ -36,14 +36,28 @@ Variable* find_variable(char *var_name) {
 }
 
 void parser_code(char *code) {
+    if (code == NULL) {
+        fprintf(stderr, "[Parser-error]: got a emtpy source-code buffer\n");
+        return;
+    }
     char *ptr = code;
     printf("[Parser]: starting parsing of source-code...\n");
     while (*ptr != '\0') {
-        if (isspace(*ptr)) {
+        if (isspace((unsigned char)*ptr)) {
             ptr++;
             continue;
         }
-        printf("[Parser DEBUG]: reading char: '%c'\n");
+        if (strncmp(ptr, "head", 4) == 0) {
+            printf("[Parser]: found keyword 'head'\n");
+            ptr += 4;
+            continue;
+        }
+        if (strncmp(ptr, "(asmb)", 6) == 0) {
+            printf("[parser]: found inline-asm (asmb), switching mode...\n");
+
+            ptr += 6;
+            continue;
+        }
         ptr++;
     }
     printf("[Parser]: parsing done\n");
