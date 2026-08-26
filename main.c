@@ -2,6 +2,8 @@
 #include <stdlib.h>
 
 void tokenize(char* source);
+void parser_code(char *code);
+void generate_binary(const char *output_filename);
 
 int main(int argc, char* argv[]) {
     
@@ -31,7 +33,8 @@ int main(int argc, char* argv[]) {
     fclose(file);
 
     tokenize(source_code);
-
+    parser_code(source_code);
+    generate_binary(argv[1]);
     free(source_code);
     return 0;
 }
