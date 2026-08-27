@@ -99,12 +99,12 @@ void parse_microc_program(FILE* input_file, FILE* output_file) {
                     if (right.type == TOKEN_STRING) {
                         emit_cmp_rax_str(right.text, output_file);
                     } else if (right.type == TOKEN_NUMBER) {
-                        emit_cmp_rax_int(atoi(right.text), output_file);
+                        emit_cmp_rax_int(strtol(right.text, NULL, 0), output_file);
                     }
                 } else {
                     int idx = get_or_register_variable(left.text);
                     emit_load_variable(idx, output_file);
-                    emit_cmp_rax_int(atoi(right.text), output_file);
+                    emit_cmp_rax_int(strtol(right.text, NULL, 0), output_file);
                 }
                 
                 long patch_pos = emit_jump_if_not_equal(output_file);
@@ -133,7 +133,7 @@ void parse_microc_program(FILE* input_file, FILE* output_file) {
                 } else {
                     int idx = get_or_register_variable(left.text);
                     emit_load_variable(idx, output_file);
-                    emit_cmp_rax_int(atoi(right.text), output_file);
+                    emit_cmp_rax_int(strtol(right.text, NULL, 0), output_file);
                 }
                 
                 long patch_pos = emit_jump_if_not_equal(output_file);
@@ -175,7 +175,7 @@ void parse_microc_program(FILE* input_file, FILE* output_file) {
                 Token val = next_token(input_file);
                 
                 int idx = get_or_register_variable(var_name.text);
-                emit_store_int(idx, atoi(val.text), output_file);
+                emit_store_int(idx, strtol(val.text, NULL, 0), output_file);
             }
             else if (is_valid_identifier(token.text)) {
                 char var_name[256];
@@ -190,15 +190,15 @@ void parse_microc_program(FILE* input_file, FILE* output_file) {
                     if (strcmp(next_op.text, "+") == 0) {
                         Token right_num = next_token(input_file);
                         emit_load_variable(idx, output_file);
-                        emit_add_int(atoi(right_num.text), output_file);
+                        emit_add_int(strtol(right_num.text, NULL, 0), output_file);
                         emit_store_rax_to_variable(idx, output_file);
                     } else if (strcmp(next_op.text, "-") == 0) {
                         Token right_num = next_token(input_file);
                         emit_load_variable(idx, output_file);
-                        emit_sub_int(atoi(right_num.text), output_file);
+                        emit_sub_int(strtol(right_num.text, NULL, 0), output_file);
                         emit_store_rax_to_variable(idx, output_file);
                     } else {
-                        emit_store_int(idx, atoi(val.text), output_file);
+                        emit_store_int(idx, strtol(val.text, NULL, 0), output_file);
                     }
                 }
             }
