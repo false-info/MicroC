@@ -113,7 +113,7 @@
 <p>Example of valid MicroC code initializing a minimal boot environment:</p>
 
 <details>
-<summary>View test.mc</summary>
+<summary>View boot.mc</summary>
 <br />
 
 ```mc
