@@ -58,6 +58,7 @@ head(asm-x86-64 custom){
 The head block defines the program and its target.
 
 head(asm-x86-64 custom)
+
      │       │       │
      │       │       └── compiler mode
      │       └────────── target architecture
@@ -192,7 +193,6 @@ MicroC/
 ├── codegen.c
 ├── main.c
 ├── test.mc
-├── Makefile
 └── README.md
 
 File	Purpose
@@ -201,7 +201,6 @@ parser.c	Parsing MicroC
 codegen.c	Native machine-code generation
 main.c	Compiler entry point
 test.mc	MicroC test program
-Makefile	Build system
 
 ⸻
 
@@ -214,7 +213,7 @@ cd MicroC
 
 Build the compiler:
 
-make
+gcc codegen.c lexer.c parser.c main.c -o microc
 
 Then compile a MicroC source file:
 
