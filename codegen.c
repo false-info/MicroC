@@ -193,7 +193,27 @@ void emit_pin_fmt(const char* format_str, FILE* output_file) {
     }
 }
 
-void emit_call_function(const char* fn_name, FILE* output_file) {
-    fputc(0xE8, output_file);
-    for (int i = 0; i < 4; i++) fputc(0x00, output_file);
+void emit_read_file_byte_syscall(FILE* output_file) {
+    fputc(0x48, output_file); fputc(0xC7, output_file); fputc(0xC0, output_file);
+    fputc(0x00, output_file); fputc(0x00, output_file); fputc(0x00, output_file); fputc(0x00, output_file);
+    fputc(0x48, output_file); fputc(0x31, output_file); fputc(0xFF, output_file);
+    fputc(0x48, output_file); fputc(0x8D, output_file); fputc(0x75, output_file); fputc(0xF8, output_file);
+    fputc(0x48, output_file); fputc(0xC7, output_file); fputc(0xC2, output_file);
+    fputc(0x01, output_file); fputc(0x00, output_file); fputc(0x00, output_file); fputc(0x00, output_file);
+    fputc(0x0F, output_file); fputc(0x05, output_file);
+    fputc(0x48, output_file); fputc(0x8B, output_file); fputc(0x45, output_file); fputc(0xF8, output_file);
+}
+
+void emit_write_byte_syscall(int value, FILE* output_file) {
+    fputc(0x48, output_file); fputc(0xC7, output_file); fputc(0xC0, output_file);
+    fputc(0x01, output_file); fputc(0x00, output_file); fputc(0x00, output_file); fputc(0x00, output_file);
+    fputc(0x48, output_file); fputc(0xC7, output_file); fputc(0xC7, output_file);
+    fputc(0x01, output_file); fputc(0x00, output_file); fputc(0x00, output_file); fputc(0x00, output_file);
+    fputc(0x48, output_file); fputc(0x83, output_file); fputc(0xEC, output_file); fputc(0x08, output_file);
+    fputc(0xC6, output_file); fputc(0x04, output_file); fputc(0x24, output_file); fputc(value, output_file);
+    fputc(0x48, output_file); fputc(0x89, output_file); fputc(0xE6, output_file);
+    fputc(0x48, output_file); fputc(0xC7, output_file); fputc(0xC2, output_file);
+    fputc(0x01, output_file); fputc(0x00, output_file); fputc(0x00, output_file); fputc(0x00, output_file);
+    fputc(0x0F, output_file); fputc(0x05, output_file);
+    fputc(0x48, output_file); fputc(0x83, output_file); fputc(0xC4, output_file); fputc(0x08, output_file);
 }
