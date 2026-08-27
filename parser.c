@@ -1,114 +1,124 @@
-#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-char* run_asm_vaccum(char *ptr);
-extern char asm_storage[];
+typedef enum {
+    TOKEN_KEYWORD,
+    TOKEN_IDENTIFIER,
+    TOKEN_NUMBER,
+    TOKEN_STRING,
+    TOKEN_SYMBOL,
+    TOKEN_EOF
+} TokenType;
 
-typedef struct Variable {
-    char *name;
-    int stack_offset;
-    struct Variable *next;
-} Variable;
+typedef struct {
+    TokenType type;
+    char text[256];
+} Token;
 
-Variable *symbol_table = NULL;
+extern Token next_token(FILE* input);
+extern int is_valid_identifier(const char* text);
+extern void emit_program_prolog(FILE* out);
+extern void emit_program_epilog(FILE* out);
+extern int get_or_register_variable(const char* name);
+extern void emit_store_int(int idx, int val, FILE* out);
+extern void emit_load_to_rsi(int idx, FILE* out);
+extern void emit_pin_raw_int(int val, FILE* out);
+extern void emit_pin_fmt(const char* fmt, FILE* out);
 
-void add_variable(char *var_name, int offset) {
-    Variable *new_node = (Variable *)malloc(sizeof(Variable));
-    if (new_node == NULL) {
-        fprintf(stderr, "compiler-error: no more RAM-memory in the compiler\n");
-        exit(1);
-    }
-    new_node->name = strdup(var_name);
-    new_node->stack_offset = offset;
-    new_node->next = symbol_table;
-    symbol_table = new_node;
-    printf("compiler-info: registrated the variable '%s' on stack-ofset %d\n", var_name, offset);
-}
+void parse_microc_program(FILE* input_file, FILE* output_file) {
+    Token token;
+    int in_asm_mode = 0;
 
-Variable* find_variable(char *var_name) {
-    Variable *current = symbol_table;
-    while (current != NULL) {
-        if (strcmp(current->name, var_name) == 0) {
-            return current;
-        }
-        current = current->next;
-    }
-    return NULL;
-}
-
-void read_word(char *src, char *dest) {
-    int i = 0;
-    while (src[i] != '\0' && (isalnum((unsigned char)src[i]) || src[i] == '_') && i < 31) {
-        dest[i] = src[i];
-        i++;
-    }
-    dest[i] = '\0';
-}
-void parser_code(char *code) {
-    if (code == NULL) return;
-
-    char *ptr = code;
-    int current_stack_offset = -8;
-    int inside_head = 0;
-    int custom_supported = 0;
-    printf("[Parser]: starting parsing of source-code...\n");
-
-    while (*ptr != '\0') {
-        if (isspace((unsigned char)*ptr)) {
-            ptr++;
+    while ((token = next_token(input_file)).type != TOKEN_EOF) {
+        
+        if (strcmp(token.text, "head") == 0) {
+            next_token(input_file);
+            next_token(input_file);
+            next_token(input_file);
+            next_token(input_file);
+            next_token(input_file);
             continue;
         }
-        if (strncmp(ptr, "head", 4) == 0) {
-            printf("[Parser]: found keyword 'head'\n");
-            ptr += 4;
-            if (strstr(ptr, "custom") != NULL) custom_supported = 1;
-            while (*ptr != '{' && *ptr != '\0') ptr++;
-            if (*ptr == '{') {
-                inside_head = 1;
-                ptr++;
-            }
+
+        if (strcmp(token.text, "(asmb)") == 0) {
+            in_asm_mode = 1;
             continue;
         }
-        if (inside_head) {
-            if (strncmp(ptr, "(asmb)", 6) == 0) {
-                printf("[parser]: sending to the vaccum...\n");
-                ptr = run_asm_vaccum(ptr);
-                continue;
+        if (strcmp(token.text, "(asme)") == 0) {
+            in_asm_mode = 0;
+            continue;
+        }
+
+        if (strcmp(token.text, "}") == 0 && !in_asm_mode) {
+            break;
+        }
+
+        if (in_asm_mode) {
+            if (strcmp(token.text, "cli") == 0) {
+                fputc(0xFA, output_file);
+            } else if (strcmp(token.text, "hlt") == 0) {
+                fputc(0xF4, output_file);
+            } else if (strcmp(token.text, "pad_boot") == 0) {
+                long pos = ftell(output_file);
+                while (pos < 510) {
+                    fputc(0x00, output_file);
+                    pos++;
+                }
+            } else if (strcmp(token.text, "sign_boot") == 0) {
+                fputc(0x55, output_file);
+                fputc(0xAA, output_file);
             }
-
-            if (isalpha((unsigned char)*ptr)) {
-                char current_word[32] = {0};
-                read_word(ptr, current_word);
-
-                if (strcmp(current_word, "int") == 0) {
-                    ptr += strlen(current_word);
-                    while (isspace((unsigned char)*ptr)) ptr++;
-                    char var_name[32] = {0};
-                    read_word(ptr, var_name);
-
-                    if (find_variable(var_name) != NULL) {
-                        fprintf(stderr, "[Parser error]: Variable '%s' is already defined\n", var_name);
-                        exit(1);
+        } 
+        else {
+            if (strcmp(token.text, "fn") == 0) {
+                Token fn_name = next_token(input_file);
+                next_token(input_file);
+                next_token(input_file);
+                next_token(input_file);
+                emit_program_prolog(output_file);
+            }
+            else if (strcmp(token.text, "pin") == 0) {
+                next_token(input_file);
+                Token format_tok = next_token(input_file);
+                
+                if (format_tok.type == TOKEN_NUMBER) {
+                    emit_pin_raw_int(atoi(format_tok.text), output_file);
+                    next_token(input_file);
+                } 
+                else if (format_tok.type == TOKEN_STRING) {
+                    Token comma_or_close = next_token(input_file);
+                    if (strcmp(comma_or_close.text, ",") == 0) {
+                        Token arg_tok = next_token(input_file);
+                        if (arg_tok.type == TOKEN_IDENTIFIER) {
+                            int idx = get_or_register_variable(arg_tok.text);
+                            emit_load_to_rsi(idx, output_file);
+                        }
+                        emit_pin_fmt(format_tok.text, output_file);
+                        next_token(input_file);
+                    } else {
+                        emit_pin_fmt(format_tok.text, output_file);
                     }
-                    if (!custom_supported) {
-                        fprintf(stderr, "[Parser error]: cannot use 'int' without decalring 'custom' mode in head block\n");
-                        exit(1);
-                    }
-                    add_variable(var_name, current_stack_offset);
-                    current_stack_offset -= 8;
-
-                    ptr += strlen(var_name);
-                    continue;
+                }
+            }
+            else if (strcmp(token.text, "i64") == 0) {
+                Token var_name = next_token(input_file);
+                next_token(input_file);
+                Token val = next_token(input_file);
+                
+                int idx = get_or_register_variable(var_name.text);
+                emit_store_int(idx, atoi(val.text), output_file);
+            }
+            else if (is_valid_identifier(token.text)) {
+                char var_name[256];
+                strcpy(var_name, token.text);
+                Token op = next_token(input_file);
+                if (strcmp(op.text, "=") == 0) {
+                    Token val = next_token(input_file);
+                    int idx = get_or_register_variable(var_name);
+                    emit_store_int(idx, atoi(val.text), output_file);
                 }
             }
         }
-        if (*ptr == '}') {
-            inside_head = 0;
-            printf("[Parser]: exiting head block\n");
-        }
-        ptr++;
     }
-    printf("\n[Parser]: parsing done\n");
 }
