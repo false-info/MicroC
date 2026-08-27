@@ -3,7 +3,7 @@
 #include <string.h>
 
 typedef struct {
-    char name;
+    char name[64];
     long position;
 } Label;
 
@@ -12,7 +12,7 @@ Label label_table[MAX_LABELS];
 int label_count = 0;
 
 typedef struct {
-    char name;
+    char name[64];
     int index;
 } Variable;
 
