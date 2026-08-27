@@ -36,12 +36,28 @@ void emit_elf64_header(FILE* output_file) {
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00
     };
     fwrite(elf_header, 1, 64, output_file);
     fwrite(prog_header, 1, 56, output_file);
+}
+
+void patch_elf_sizes(FILE* output_file) {
+    long current_pos = ftell(output_file);
+    fseek(output_file, 96, SEEK_SET);
+    fputc(current_pos & 0xFF, output_file);
+    fputc((current_pos >> 8) & 0xFF, output_file);
+    fputc((current_pos >> 16) & 0xFF, output_file);
+    fputc((current_pos >> 24) & 0xFF, output_file);
+    fputc(0x00, output_file); fputc(0x00, output_file); fputc(0x00, output_file); fputc(0x00, output_file);
+    fputc(current_pos & 0xFF, output_file);
+    fputc((current_pos >> 8) & 0xFF, output_file);
+    fputc((current_pos >> 16) & 0xFF, output_file);
+    fputc((current_pos >> 24) & 0xFF, output_file);
+    fputc(0x00, output_file); fputc(0x00, output_file); fputc(0x00, output_file); fputc(0x00, output_file);
+    fseek(output_file, current_pos, SEEK_SET);
 }
 
 void emit_program_prolog(FILE* output_file) {
@@ -60,6 +76,7 @@ void emit_program_epilog(FILE* output_file) {
     fputc(0x3C, output_file); fputc(0x00, output_file); fputc(0x00, output_file); fputc(0x00, output_file);
     fputc(0x48, output_file); fputc(0x31, output_file); fputc(0xFF, output_file);
     fputc(0x0F, output_file); fputc(0x05, output_file);
+    patch_elf_sizes(output_file);
 }
 
 int get_or_register_variable(const char* name) {
