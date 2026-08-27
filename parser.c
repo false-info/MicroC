@@ -18,6 +18,7 @@ typedef struct {
 
 extern Token next_token(FILE* input);
 extern int is_valid_identifier(const char* text);
+extern void emit_elf64_header(FILE* out);
 extern void emit_program_prolog(FILE* out);
 extern int get_or_register_variable(const char* name);
 extern void emit_store_int(int idx, int val, FILE* out);
@@ -204,4 +205,3 @@ void parse_microc_program(FILE* input_file, FILE* output_file) {
         }
     }
 }
-
