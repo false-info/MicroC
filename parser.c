@@ -13,11 +13,12 @@ typedef enum {
 
 typedef struct {
     TokenType type;
-    char text[256];
+    char text;
 } Token;
 
 extern Token next_token(FILE* input);
 extern int is_valid_identifier(const char* text);
+extern void emit_elf64_header(FILE* out);
 extern void emit_program_prolog(FILE* out);
 extern void emit_program_epilog(FILE* out);
 extern int get_or_register_variable(const char* name);
@@ -47,6 +48,7 @@ void parse_microc_program(FILE* input_file, FILE* output_file) {
             next_token(input_file);
             next_token(input_file);
             next_token(input_file);
+            emit_elf64_header(output_file);
             continue;
         }
 
@@ -178,7 +180,7 @@ void parse_microc_program(FILE* input_file, FILE* output_file) {
                 emit_store_int(idx, atoi(val.text), output_file);
             }
             else if (is_valid_identifier(token.text)) {
-                char var_name[64];
+                char var_name;
                 strcpy(var_name, token.text);
                 Token op = next_token(input_file);
                 
