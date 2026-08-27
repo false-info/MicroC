@@ -192,3 +192,8 @@ void emit_pin_fmt(const char* format_str, FILE* output_file) {
         fputc((dummy_addr >> (i * 8)) & 0xFF, output_file);
     }
 }
+
+void emit_call_function(const char* fn_name, FILE* output_file) {
+    fputc(0xE8, output_file);
+    for (int i = 0; i < 4; i++) fputc(0x00, output_file);
+}
