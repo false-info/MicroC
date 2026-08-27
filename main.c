@@ -18,6 +18,7 @@ typedef struct {
 
 extern void parse_microc_program(FILE* input_file, FILE* output_file);
 extern void emit_program_epilog(FILE* output_file);
+extern void emit_elf64_header(FILE* output_file);
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -48,8 +49,21 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    int is_bin = 0;
+    int len = strlen(output_filename);
+    if (len >= 4 && strcmp(&output_filename[len - 4], ".bin") == 0) {
+        is_bin = 1;
+    }
+
+    if (!is_bin) {
+        emit_elf64_header(output_file);
+    }
+
     parse_microc_program(input_file, output_file);
-    emit_program_epilog(output_file);
+
+    if (!is_bin) {
+        emit_program_epilog(output_file);
+    }
 
     fclose(input_file);
     fclose(output_file);
