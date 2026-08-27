@@ -58,10 +58,11 @@ head(asm-x86-64 custom){
 The head block defines the program and its target.
 
 head(asm-x86-64 custom)
-     │       │       │
-     │       │       └── compiler mode
-     │       └────────── target architecture
-     └────────────────── program entry
+
+       │     │       │
+       │     │       └── compiler mode
+       │     └────────── target architecture
+       └──────────────── program entry
 
 ⸻
 
