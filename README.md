@@ -116,15 +116,14 @@
 <summary>View test.mc</summary>
 <br />
 
-```c
+```mc
 head(asm-x86-64 custom){ 
     (asmb) { 
         cli            // Disable interrupts
         hlt            // Halt the processor
         pad_boot       // Pad the binary to the 510-byte boundary
         sign_boot      // Write boot signature 0xAA55 at bytes 511-512
-    } 
-    (asme) 
+    } (asme) 
 }
 ```
 </details>
