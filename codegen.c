@@ -65,6 +65,84 @@ void emit_store_int(int variable_index, int value, FILE* output_file) {
     fputc((value >> 24) & 0xFF, output_file);
 }
 
+void emit_load_variable(int variable_index, FILE* output_file) {
+    int offset = (variable_index + 1) * 8;
+    fputc(0x48, output_file);
+    fputc(0x8B, output_file);
+    fputc(0x45, output_file);
+    fputc((signed char)(-offset), output_file);
+}
+
+void emit_store_rax_to_variable(int variable_index, FILE* output_file) {
+    int offset = (variable_index + 1) * 8;
+    fputc(0x48, output_file);
+    fputc(0x89, output_file);
+    fputc(0x45, output_file);
+    fputc((signed char)(-offset), output_file);
+}
+
+void emit_add_int(int value, FILE* output_file) {
+    fputc(0x48, output_file);
+    fputc(0x05, output_file);
+    fputc(value & 0xFF, output_file);
+    fputc((value >> 8) & 0xFF, output_file);
+    fputc((value >> 16) & 0xFF, output_file);
+    fputc((value >> 24) & 0xFF, output_file);
+}
+
+void emit_sub_int(int value, FILE* output_file) {
+    fputc(0x48, output_file);
+    fputc(0x2D, output_file);
+    fputc(value & 0xFF, output_file);
+    fputc((value >> 8) & 0xFF, output_file);
+    fputc((value >> 16) & 0xFF, output_file);
+    fputc((value >> 24) & 0xFF, output_file);
+}
+
+void emit_cmp_rax_int(int value, FILE* output_file) {
+    fputc(0x48, output_file);
+    fputc(0x3D, output_file);
+    fputc(value & 0xFF, output_file);
+    fputc((value >> 8) & 0xFF, output_file);
+    fputc((value >> 16) & 0xFF, output_file);
+    fputc((value >> 24) & 0xFF, output_file);
+}
+
+void emit_cmp_rax_str(const char* str, FILE* output_file) {
+    fputc(0x48, output_file);
+    fputc(0xBB, output_file);
+    long dummy_addr = 0;
+    for (int i = 0; i < 8; i++) {
+        fputc((dummy_addr >> (i * 8)) & 0xFF, output_file);
+    }
+}
+
+long emit_jump_if_not_equal(FILE* output_file) {
+    fputc(0x0F, output_file);
+    fputc(0x85, output_file);
+    long patch_pos = ftell(output_file);
+    for (int i = 0; i < 4; i++) fputc(0x00, output_file);
+    return patch_pos;
+}
+
+long emit_jump_always(FILE* output_file) {
+    fputc(0xE9, output_file);
+    long patch_pos = ftell(output_file);
+    for (int i = 0; i < 4; i++) fputc(0x00, output_file);
+    return patch_pos;
+}
+
+void patch_jump_distance(long patch_position, long target_position, FILE* output_file) {
+    long current_pos = ftell(output_file);
+    long relative_offset = target_position - (patch_position + 4);
+    fseek(output_file, patch_position, SEEK_SET);
+    fputc(relative_offset & 0xFF, output_file);
+    fputc((relative_offset >> 8) & 0xFF, output_file);
+    fputc((relative_offset >> 16) & 0xFF, output_file);
+    fputc((relative_offset >> 24) & 0xFF, output_file);
+    fseek(output_file, current_pos, SEEK_SET);
+}
+
 void emit_load_to_rsi(int variable_index, FILE* output_file) {
     int offset = (variable_index + 1) * 8;
     fputc(0x48, output_file);
