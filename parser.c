@@ -34,6 +34,7 @@ extern void patch_jump_distance(long patch_pos, long target_pos, FILE* out);
 extern void emit_load_to_rsi(int idx, FILE* out);
 extern void emit_pin_raw_int(int val, FILE* out);
 extern void emit_pin_fmt(const char* fmt, FILE* out);
+extern void emit_call_function(const char* fn_name, FILE* out);
 
 void parse_microc_program(FILE* input_file, FILE* output_file) {
     Token token;
@@ -128,7 +129,7 @@ void parse_microc_program(FILE* input_file, FILE* output_file) {
                     if (right.type == TOKEN_STRING) {
                         emit_cmp_rax_str(right.text, output_file);
                     } else if (right.type == TOKEN_NUMBER) {
-                        emit_cmp_rax_int(atoi(right.text), output_file);
+                        emit_cmp_rax_int(strtol(right.text, NULL, 0), output_file);
                     }
                 } else {
                     int idx = get_or_register_variable(left.text);
@@ -151,7 +152,7 @@ void parse_microc_program(FILE* input_file, FILE* output_file) {
                 Token format_tok = next_token(input_file);
                 
                 if (format_tok.type == TOKEN_NUMBER) {
-                    emit_pin_raw_int(atoi(format_tok.text), output_file);
+                    emit_pin_raw_int(strtol(format_tok.text, NULL, 0), output_file);
                     next_token(input_file);
                 } 
                 else if (format_tok.type == TOKEN_STRING) {
@@ -187,7 +188,12 @@ void parse_microc_program(FILE* input_file, FILE* output_file) {
                     int idx = get_or_register_variable(var_name);
                     
                     Token next_op = next_token(input_file);
-                    if (strcmp(next_op.text, "+") == 0) {
+                    if (strcmp(next_op.text, "(") == 0) {
+                        next_token(input_file);
+                        emit_call_function(val.text, output_file);
+                        emit_store_rax_to_variable(idx, output_file);
+                    }
+                    else if (strcmp(next_op.text, "+") == 0) {
                         Token right_num = next_token(input_file);
                         emit_load_variable(idx, output_file);
                         emit_add_int(strtol(right_num.text, NULL, 0), output_file);
