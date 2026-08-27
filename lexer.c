@@ -17,124 +17,243 @@ typedef struct {
 } Token;
 
 int is_valid_identifier(const char* text) {
-    if (!isalpha((unsigned char)text[0]) && text[0] != '_') return 0;
+    if (!text || !text[0])
+        return 0;
+
+    if (!isalpha((unsigned char)text[0]) && text[0] != '_')
+        return 0;
+
     for (int i = 1; text[i] != '\0'; i++) {
-        if (!isalnum((unsigned char)text[i]) && text[i] != '_') return 0;
+        if (!isalnum((unsigned char)text[i]) && text[i] != '_')
+            return 0;
     }
+
     return 1;
+}
+
+static int is_keyword(const char* text) {
+    return strcmp(text, "head") == 0 ||
+           strcmp(text, "i64") == 0 ||
+           strcmp(text, "fn") == 0 ||
+           strcmp(text, "pin") == 0 ||
+           strcmp(text, "custom") == 0 ||
+           strcmp(text, "asm-x86-64") == 0 ||
+           strcmp(text, "if") == 0 ||
+           strcmp(text, "while") == 0;
 }
 
 Token next_token(FILE* input) {
     Token token;
-    memset(token.text, 0, sizeof(token.text));
+    memset(&token, 0, sizeof(token));
+
     int c;
 
     while (1) {
         c = fgetc(input);
+
         if (c == EOF) {
             token.type = TOKEN_EOF;
             strcpy(token.text, "EOF");
             return token;
         }
 
-        if (isspace(c)) continue;
+        if (isspace((unsigned char)c))
+            continue;
 
         if (c == '/') {
-            int next_c = fgetc(input);
-            if (next_c == '/') {
-                while ((c = fgetc(input)) != '\n' && c != EOF);
+            int next = fgetc(input);
+
+            if (next == '/') {
+                while ((c = fgetc(input)) != '\n' && c != EOF)
+                    ;
                 continue;
-            } else {
-                if (next_c != EOF) ungetc(next_c, input);
             }
+
+            if (next != EOF)
+                ungetc(next, input);
         }
 
         break;
     }
 
     if (c == '"') {
+        int i = 0;
         token.type = TOKEN_STRING;
-        int idx = 0;
-        while ((c = fgetc(input)) != '"' && c != EOF) {
-            if (idx < 255) {
-                token.text[idx++] = c;
+
+        while ((c = fgetc(input)) != EOF && c != '"') {
+            if (c == '\\') {
+                int next = fgetc(input);
+
+                if (next == 'n')
+                    c = '\n';
+                else if (next == 'r')
+                    c = '\r';
+                else if (next == 't')
+                    c = '\t';
+                else
+                    c = next;
             }
+
+            if (i < 255)
+                token.text[i++] = (char)c;
         }
-        token.text[idx] = '\0';
+
+        token.text[i] = '\0';
         return token;
     }
 
-    if (c == '(' || c == ')') {
-        token.type = TOKEN_SYMBOL;
-        token.text[0] = c;
-        token.text[1] = '\0';
-        
-        if (c == '(') {
-            int next_c = fgetc(input);
-            if (next_c == 'a') {
-                int c2 = fgetc(input);
-                int c3 = fgetc(input);
-                int c4 = fgetc(input);
-                int c5 = fgetc(input);
-                if (c2 == 's' && c3 == 'm' && c4 == 'b' && c5 == ')') {
-                    strcpy(token.text, "(asmb)");
-                    return token;
-                }
-                if (c5 != EOF) ungetc(c5, input);
-                if (c4 != EOF) ungetc(c4, input);
-                if (c3 != EOF) ungetc(c3, input);
-                if (c2 != EOF) ungetc(c2, input);
+    if (c == '(') {
+        char buffer[8];
+        int i = 0;
+
+        buffer[i++] = '(';
+
+        int next = fgetc(input);
+
+        while (next != EOF &&
+               next != ')' &&
+               i < 7) {
+            buffer[i++] = (char)next;
+            next = fgetc(input);
+        }
+
+        if (next == ')') {
+            buffer[i++] = ')';
+            buffer[i] = '\0';
+
+            if (strcmp(buffer, "(asmb)") == 0 ||
+                strcmp(buffer, "(asme)") == 0) {
+                token.type = TOKEN_SYMBOL;
+                strcpy(token.text, buffer);
+                return token;
             }
-            if (next_c != EOF) ungetc(next_c, input);
-        }
-        return token;
-    }
 
-    if (c == '{' || c == '}' || c == ',' || c == '=') {
-        token.type = TOKEN_SYMBOL;
-        token.text[0] = c;
-        token.text[1] = '\0';
-        return token;
-    }
-
-    if (isdigit(c)) {
-        token.type = TOKEN_NUMBER;
-        int idx = 0;
-        while (isdigit(c)) {
-            if (idx < 255) token.text[idx++] = c;
-            c = fgetc(input);
-        }
-        if (c != EOF) ungetc(c, input);
-        token.text[idx] = '\0';
-        return token;
-    }
-
-    if (isalpha(c) || c == '_' || c == '-') {
-        int idx = 0;
-        while (isalnum(c) || c == '_' || c == '-') {
-            if (idx < 255) token.text[idx++] = c;
-            c = fgetc(input);
-        }
-        if (c != EOF) ungetc(c, input);
-        token.text[idx] = '\0';
-
-        if (strcmp(token.text, "head") == 0 || 
-            strcmp(token.text, "i64") == 0 || 
-            strcmp(token.text, "fn") == 0 || 
-            strcmp(token.text, "pin") == 0 ||
-            strcmp(token.text, "custom") == 0 ||
-            strcmp(token.text, "asm-x86-64") == 0) {
-            token.type = TOKEN_KEYWORD;
-        } else if (strcmp(token.text, "(asme)") == 0) {
-            token.type = TOKEN_SYMBOL;
+            for (int j = i - 1; j >= 1; j--)
+                ungetc((unsigned char)buffer[j], input);
         } else {
-            token.type = TOKEN_IDENTIFIER;
+            if (next != EOF)
+                ungetc(next, input);
+
+            for (int j = i - 1; j >= 1; j--)
+                ungetc((unsigned char)buffer[j], input);
         }
+
+        token.type = TOKEN_SYMBOL;
+        token.text[0] = '(';
+        token.text[1] = '\0';
+        return token;
+    }
+
+    if (c == '=' ||
+        c == '!' ||
+        c == '<' ||
+        c == '>') {
+
+        int next = fgetc(input);
+
+        token.type = TOKEN_SYMBOL;
+        token.text[0] = (char)c;
+
+        if (next == '=') {
+            token.text[1] = '=';
+            token.text[2] = '\0';
+        } else {
+            token.text[1] = '\0';
+
+            if (next != EOF)
+                ungetc(next, input);
+        }
+
+        return token;
+    }
+
+    if (c == ')' ||
+        c == '{' ||
+        c == '}' ||
+        c == ',' ||
+        c == '+' ||
+        c == '-' ||
+        c == '*' ||
+        c == '/') {
+
+        token.type = TOKEN_SYMBOL;
+        token.text[0] = (char)c;
+        token.text[1] = '\0';
+        return token;
+    }
+
+    if (isdigit((unsigned char)c)) {
+        int i = 0;
+
+        token.type = TOKEN_NUMBER;
+        token.text[i++] = (char)c;
+
+        if (c == '0') {
+            int next = fgetc(input);
+
+            if (next == 'x' || next == 'X') {
+                token.text[i++] = (char)next;
+
+                while ((c = fgetc(input)) != EOF &&
+                       isxdigit((unsigned char)c)) {
+
+                    if (i < 255)
+                        token.text[i++] = (char)c;
+                }
+
+                if (c != EOF)
+                    ungetc(c, input);
+
+                token.text[i] = '\0';
+                return token;
+            }
+
+            if (next != EOF)
+                ungetc(next, input);
+        }
+
+        while ((c = fgetc(input)) != EOF &&
+               isdigit((unsigned char)c)) {
+
+            if (i < 255)
+                token.text[i++] = (char)c;
+        }
+
+        if (c != EOF)
+            ungetc(c, input);
+
+        token.text[i] = '\0';
+        return token;
+    }
+
+    if (isalpha((unsigned char)c) || c == '_') {
+        int i = 0;
+
+        while ((isalnum((unsigned char)c) ||
+                c == '_' ||
+                c == '-') &&
+               i < 255) {
+
+            token.text[i++] = (char)c;
+            c = fgetc(input);
+        }
+
+        if (c != EOF)
+            ungetc(c, input);
+
+        token.text[i] = '\0';
+
+        if (is_keyword(token.text))
+            token.type = TOKEN_KEYWORD;
+        else
+            token.type = TOKEN_IDENTIFIER;
+
         return token;
     }
 
     token.type = TOKEN_SYMBOL;
-    token.text[0] = c;
+    token.text[0] = (char)c;
     token.text[1] = '\0';
+
     return token;
 }
