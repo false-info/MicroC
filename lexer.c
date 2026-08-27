@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -18,9 +17,9 @@ typedef struct {
 } Token;
 
 int is_valid_identifier(const char* text) {
-    if (!isalpha(text[0]) && text[0] != '_') return 0;
+    if (!isalpha((unsigned char)text[0]) && text[0] != '_') return 0;
     for (int i = 1; text[i] != '\0'; i++) {
-        if (!isalnum(text[i]) && text[i] != '_') return 0;
+        if (!isalnum((unsigned char)text[i]) && text[i] != '_') return 0;
     }
     return 1;
 }
@@ -84,10 +83,9 @@ Token next_token(FILE* input) {
                 if (c5 != EOF) ungetc(c5, input);
                 if (c4 != EOF) ungetc(c4, input);
                 if (c3 != EOF) ungetc(c3, input);
-                if (next_c != EOF) ungetc(next_c, input);
-            } else {
-                if (next_c != EOF) ungetc(next_c, input);
+                if (c2 != EOF) ungetc(c2, input);
             }
+            if (next_c != EOF) ungetc(next_c, input);
         }
         return token;
     }
