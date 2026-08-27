@@ -3,7 +3,7 @@
 #include <string.h>
 
 typedef struct {
-    char name[64];
+    char name[256];
     long position;
 } Label;
 
@@ -12,7 +12,7 @@ Label label_table[MAX_LABELS];
 int label_count = 0;
 
 typedef struct {
-    char name[64];
+    char name[256];
     int index;
 } Variable;
 
@@ -192,4 +192,3 @@ void emit_pin_fmt(const char* format_str, FILE* output_file) {
         fputc((dummy_addr >> (i * 8)) & 0xFF, output_file);
     }
 }
-
