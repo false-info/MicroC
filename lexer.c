@@ -84,9 +84,10 @@ Token next_token(FILE* input) {
                 if (c5 != EOF) ungetc(c5, input);
                 if (c4 != EOF) ungetc(c4, input);
                 if (c3 != EOF) ungetc(c3, input);
-                if (c2 != EOF) ungetc(c2, input);
+                if (next_c != EOF) ungetc(next_c, input);
+            } else {
+                if (next_c != EOF) ungetc(next_c, input);
             }
-            if (next_c != EOF) ungetc(next_c, input);
         }
         return token;
     }
