@@ -1,88 +1,116 @@
-<!-- HEADER SECTION -->
 <div align="center">
-  <h1>⚡ MicroC ⚡</h1>
-  <p><strong>A Native Systems Programming Language & AOT Compiler Built Completely From Scratch</strong></p>
-  
-  <p>
-    <img src="https://shields.io" alt="Compiler AOT" />
-    <img src="https://shields.io" alt="x86-64" />
-    <img src="https://shields.io" alt="Stage" />
-  </p>
+<pre>
+ __  __ _             ____     
+
+|  \/  (_) ___ _ __ _/ ___|    
+| |\/| | |/ __| '__/ \___ \    
+| |  | | | (__| |  | |___) |   
+|_|  |_|_|\___|_|  |_|____/    
+                               
+</pre>
+<p><strong>A Native Systems Programming Language & AOT Compiler Built From Scratch In C</strong></p>
 </div>
 
 <hr />
 
-<!-- MISSION & VISION SECTION -->
-<h2>🎯 The Grand Vision</h2>
+<pre>
+ _   _ _     _             
+
+| | | (_)___(_) ___  _ __  
+| | | | / __| |/ _ \| '_ \ 
+\ \_/ / \__ \ | (_) | | | |
+ \___/|_|___/_|\___/|_| |_|
+                           
+</pre>
 <p>
-  Inspired by the legendary absolute control of Terry Davis's TempleOS, <strong>MicroC</strong> is built with a modern twist. The ultimate goal is to achieve 100% self-hosting and construct a fully functional, bare-metal <strong>Daily Use Operating System</strong>. 
+  MicroC is a minimalist systems programming language built entirely without external toolchains, assemblers, or linkers. The compiler generates raw x86-64 machine code directly from source text. The primary objective of this project is to achieve full self-hosting, which will then serve as the foundation for an independent operating system engineered for daily use.
 </p>
 <p>
-  Unlike academic toy compilers, MicroC cuts out all heavy intermediate toolchains and outputs pure binary directly. It is designed to be small, fast, and entirely understandable by a single developer.
+  Inspiration is drawn from the absolute software sovereignty achieved by Terry Davis with TempleOS, but with a fundamental shift in purpose: MicroC OS is being developed for modern hardware, network stacks, and daily developer workflows, entirely free from heavy and opaque modern operating system layers.
 </p>
 
 <table width="100%">
   <tr>
     <td width="50%">
-      <strong>🚀 Near-Term Goal</strong><br />
-      Achieve self-hosting by rewriting the compiler pipeline inside MicroC itself.
+      <strong>Milestone 1: Self-Hosting</strong><br />
+      Re-implementing the lexer, parser, and code generator directly in MicroC to eliminate the C bootstrapping layer.
     </td>
     <td width="50%">
-      <strong>🖥️ Long-Term Goal</strong><br />
-      A fully independent, graphical daily-use OS running native applications.
+      <strong>Milestone 2: Daily Use OS</strong><br />
+      Developing a bare-metal OS with a graphical interface, file system, and native drivers capable of replacing standard environments for systems-level work.
     </td>
   </tr>
 </table>
 
 <hr />
 
-<!-- FEATURES & CAPABILITIES -->
-<h2>✨ Core Capabilities</h2>
+<pre>
+ _____             _                     
+
+|  ___|__  __ _ _ _| |_ _   _ _ __ ___ ___ 
+| |_ / _ \/ _` | '_\ __| | | | '__/ _ / __|
+|  _|  __/ (_| | | | |_| |_| | | |  __\__ \
+|_|  \___|\__,_|_|  \__| \__,_|_|  \___|___/
+                                            
+</pre>
 <ul>
-  <li><strong>Zero Dependencies:</strong> Emits raw machine code without invoking an assembler or linker.</li>
-  <li><strong>Inline Assembly:</strong> Direct hardware access through integrated <code>(asmb) ... (asme)</code> blocks.</li>
-  <li><strong>Bare-Metal Primitives:</strong> Built-in instructions like <code>pad_boot</code> and <code>sign_boot</code> for automatic bootloader structuring.</li>
+  <li><strong>Raw Binary Emission:</strong> Writes opcodes directly to disk without generating temporary text-based assembly files.</li>
+  <li><strong>Inline Assembly:</strong> Direct hardware interaction via explicitly defined <code>(asmb) ... (asme)</code> blocks.</li>
+  <li><strong>Bootloader Primitives:</strong> Built-in compiler instructions (<code>pad_boot</code>, <code>sign_boot</code>) for automatic structuring of MBR/boot sectors.</li>
 </ul>
 
 <hr />
 
-<!-- COMPILER PIPELINE ARCHITECTURE -->
-<h2>📐 Pipeline Architecture</h2>
-<p>The compiler is split into highly optimized, modular stages:</p>
+<pre>
+    _               _     _ _            _                 
+   / \   _ __  ___ | |__ (_) |_ ___  ___| |_ _   _ _ __    
+  / _ \ | '_ \/ __|| '_ \| | __/ _ \/ __| __| | | | '__|   
+ / ___ \| | | \__ \| | | | | ||  __/ (__| |_| |_| | |      
+/_/   \_\_| |_|___/|_| |_|_|\__\___|\___|\__|\__,_|_|      
+                                                           
+</pre>
+<p>The compiler's internal execution pipeline is divided into four strictly isolated stages:</p>
 
 <pre>
 [ MicroC Source (.mc) ]
           │
           ▼
-     [ Lexer.c ] ──────► Tokenizes raw text stream
+     [ Lexer.c ] ──────► Generates token stream from raw text
           │
           ▼
-    [ Parser.c ] ──────► Syntactic structural validation
+    [ Parser.c ] ──────► Validates grammatical structure and syntax tree
           │
           ▼
-   [ Codegen.c ] ──────► Direct opcode generation
+   [ Codegen.c ] ──────► Translates logic directly into x86-64 opcodes
           │
           ▼
-[ Native x86-64 Machine Code ]
+[ Executable Machine Code ]
 </pre>
 
 <hr />
 
-<!-- CODE INTERACTIVE SECTION -->
-<h2>💻 Language Syntax</h2>
-<p>Click below to inspect how MicroC targets low-level hardware environment generation:</p>
+<pre>
+ ____             _                  
+/ ___| _   _ _ __ | |_ __ ___  __     
+\___ \| | | | '_ \| __/ _` \ \/ /     
+ ___) | |_| | | | | || (_| |>  <      
+
+|____/ \__, |_| |_|\__\__,_/_/\_\     
+       |___/                          
+</pre>
+<p>Example of valid MicroC code initializing a minimal boot environment:</p>
 
 <details>
-<summary>📂 <strong>View Sample Source Code (test.mc)</strong></summary>
+<summary>View test.mc</summary>
 <br />
 
 ```c
 head(asm-x86-64 custom){ 
     (asmb) { 
-        cli            // Clear interrupts
+        cli            // Disable interrupts
         hlt            // Halt the processor
-        pad_boot       // Automatically pad to 510 bytes
-        sign_boot      // Insert 0xAA55 boot signature
+        pad_boot       // Pad the binary to the 510-byte boundary
+        sign_boot      // Write boot signature 0xAA55 at bytes 511-512
     } 
     (asme) 
 }
@@ -91,84 +119,67 @@ head(asm-x86-64 custom){
 
 <hr />
 
-<!-- REPOSITORY MAP -->
-<h2>📁 Project Structure</h2>
-<table width="100%">
-  <thead>
-    <tr>
-      <th align="left">File</th>
-      <th align="left">Responsibility</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>lexer.c</code></td>
-      <td>Lexical scanning and token parsing</td>
-    </tr>
-    <tr>
-      <td><code>parser.c</code></td>
-      <td>Abstract syntax and grammatical checks</td>
-    </tr>
-    <tr>
-      <td><code>codegen.c</code></td>
-      <td>x86-64 binary instruction emission</td>
-    </tr>
-    <tr>
-      <td><code>main.c</code></td>
-      <td>Compiler driver and file I/O entry point</td>
-    </tr>
-  </tbody>
-</table>
+<pre>
+ ____  _             _ _     _   _             
 
-<hr />
+| __ )| |__  _   _  (_) | __| |_ (_)_ __   __ _ 
+|  _ \| '_ \| | | | | | |/ _` __| | '_ \ / _` |
+| |_) | | | | |_| | | | | (_| |_  | | | | (_| |
+|____/|_| |_|\__,_| |_|_|\__,_|\__|_|_| |_|\__, |
+                                           |___/ 
+</pre>
 
-<!-- GETTING STARTED -->
-<h2>🚀 Getting Started</h2>
-
-<h3>1. Clone the environment</h3>
+<h3>1. Clone the repository</h3>
 <pre>git clone https://github.com MicroC</pre>
 
-<h3>2. Build the bootstrap compiler</h3>
+<h3>2. Compile the bootstrap compiler via GCC</h3>
 <pre>gcc codegen.c lexer.c parser.c main.c -o microc</pre>
 
-<h3>3. Generate native binary</h3>
+<h3>3. Generate machine code from source</h3>
 <pre>./microc test.mc -o output</pre>
 
 <hr />
 
-<!-- DETAILED ROADMAP -->
-<h2>🗺️ Roadmap</h2>
+<pre>
+ ____                _ _            
+
+|  _ \ ___   __ _  __| | |__   __ _  
+| |_) / _ \ / _` |/ _` | '_ \ / _` | 
+|  _ < (_) | (_| | (_| | |_) | (_| | 
+|_| \_\___/ \__,_|\__,_|_.__/ \__,_| 
+                                     
+</pre>
 
 <details>
-<summary>🛠️ <strong>Phase 1: Compiler Fundamentals (In Progress)</strong></summary>
+<summary>Phase 1: Compiler Engineering (In Progress)</summary>
 <ul>
-  <li>[x] Raw token generation loop</li>
-  <li>[x] Abstract hardware binding validation</li>
-  <li>[x] Direct x86-64 machine code generation</li>
-  <li>[ ] Detailed syntax error logging & line pointing</li>
-  <li>[ ] Native variable evaluation & type checking</li>
+  <li>[x] Raw tokenization and lexical scanning</li>
+  <li>[x] Grammatical parsing of control structures</li>
+  <li>[x] Direct x86-64 opcode emission</li>
+  <li>[ ] Implementation of line-based error reporting</li>
+  <li>[ ] Type checking and variable stack allocation</li>
 </ul>
 </details>
 
 <details>
-<summary>🖥️ <strong>Phase 2: The MicroC OS Lifecycle</strong></summary>
+<summary>Phase 2: MicroC Kernel & OS Architecture</summary>
 <ul>
-  <li>[ ] Minimalist AOT-compiled Kernel core</li>
-  <li>[ ] Keyboard drivers & video text-mode buffers</li>
-  <li>[ ] Standard daily-use filesystem execution (FAT32/Custom)</li>
+  <li>[ ] Minimalist AOT-compiled monolithic kernel core</li>
+  <li>[ ] Basic keyboard driver (PS/2) and VGA text-mode buffer</li>
+  <li>[ ] Custom file system or FAT32 reader for binary execution</li>
 </ul>
 </details>
 
 <details>
-<summary>🌌 <strong>Phase 3: Ultimate Autonomy</strong></summary>
+<summary>Phase 3: Ultimate Autonomy</summary>
 <ul>
-  <li>[ ] Self-hosting implementation (MicroC compiling MicroC)</li>
-  <li>[ ] Monolithic daily-use desktop environment interface</li>
+  <li>[ ] Self-hosting (MicroC compiling its own source code)</li>
+  <li>[ ] Graphical window system and shell for daily use</li>
 </ul>
 </details>
 
 <hr />
 
 <div align="center">
-  <p><sub>MicroC is experimental, open-source, and dedicated to pure low-level computing sovereignty.</sub></p>
+  <p><sub>MicroC is developed experimentally under an open-source license with the ultimate goal of absolute digital sovereignty.</sub></p>
 </div>
