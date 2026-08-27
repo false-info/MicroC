@@ -205,4 +205,3 @@ void parse_microc_program(FILE* input_file, FILE* output_file) {
     }
 }
 
-
