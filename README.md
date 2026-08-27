@@ -7,13 +7,14 @@
  ░███ ░░░  ░███  ░███ ░███ ░░░  ░███ ░░░ ░███ ░███   ░███         
  ░███      ░███  ░███ ░███  ███ ░███     ░███ ░███   ░░███     ███
  █████     █████ █████░░██████  █████    ░░██████     ░░█████████ 
-░░░░░     ░░░░░ ░░░░░  ░░░░░░  ░░░░░      ░░░░░░       ░░░░░░░░░  
+░░░░░     ░░░░░ ░░░░░  ░░░░░░  ░░░░░      ░░░░░░       ░░░░░░░░░    
 </pre>
 <p><strong>A Native Systems Programming Language & AOT Compiler Built From Scratch In C</strong></p>
 </div>
 
 <hr />
 
+<div align="center">
 <pre>
  █████   █████  ███           ███                     
 ░░███   ░░███  ░░░           ░░░                      
@@ -23,8 +24,8 @@
   ░░░█████░    ░███  ░░░░███ ░███ ░███ ░███ ░███ ░███ 
     ░░███      █████ ██████  █████░░██████  ████ █████
      ░░░      ░░░░░ ░░░░░░  ░░░░░  ░░░░░░  ░░░░ ░░░░░ 
-                           
 </pre>
+</div>
 <p>
   MicroC is a minimalist systems programming language built entirely without external toolchains, assemblers, or linkers. The compiler generates raw x86-64 machine code directly from source text. The primary objective of this project is to achieve full self-hosting, which will then serve as the foundation for an independent operating system engineered for daily use.
 </p>
@@ -47,6 +48,7 @@
 
 <hr />
 
+<div align="center">
 <pre>
  ███████████                     █████                                         
 ░░███░░░░░░█                    ░░███                                          
@@ -56,16 +58,31 @@
  ░███  ░    ░███░░░   ███░░███   ░███ ███ ░███ ░███  ░███     ░███░░░   ░░░░███
  █████      ░░██████ ░░████████  ░░█████  ░░████████ █████    ░░██████  ██████ 
 ░░░░░        ░░░░░░   ░░░░░░░░    ░░░░░    ░░░░░░░░ ░░░░░      ░░░░░░  ░░░░░░  
-                                            
 </pre>
+</div>
+
+<h3>⚡ Current Features</h3>
 <ul>
-  <li><strong>Raw Binary Emission:</strong> Writes opcodes directly to disk without generating temporary text-based assembly files.</li>
-  <li><strong>Inline Assembly:</strong> Direct hardware interaction via explicitly defined <code>(asmb) ... (asme)</code> blocks.</li>
-  <li><strong>Bootloader Primitives:</strong> Built-in compiler instructions (<code>pad_boot</code>, <code>sign_boot</code>) for automatic structuring of MBR/boot sectors.</li>
+  <li><strong>Dual-Mode Extension Detection:</strong> The compiler automatically evaluates your terminal flags. Typing <code>-o app.bin</code> outputs a raw bootsector, while <code>-o app</code> auto-appends an ELF64 Linux header.</li>
+  <li><strong>Single-Pass Backpatching:</strong> Emits jumps instantly for <code>if</code> and <code>while</code> and tracks unresolved branches dynamically. It goes back and patches exact offsets once a closing brace <code>}</code> is encountered.</li>
+  <li><strong>AOT Binary Emission:</strong> No temporary assembly text files (.s) are generated. The compiler writes pure, raw x86-64 machine code directly to disk.</li>
+  <li><strong>Unified Mode Head Switching:</strong> Context configurations are driven via a singular <code>head(asm-x86-64 custom)</code> syntax statement.</li>
+  <li><strong>Inline Assembly Escapes:</strong> Low-level hardware blocks can be declared seamlessly anywhere inside standard code routines via <code>(asmb) ... (asme)</code> statements.</li>
+  <li><strong>Hardware MBR Primitives:</strong> Hardcoded macro keywords like <code>pad_boot</code> (zero-fills to 510 bytes) and <code>sign_boot</code> (writes 0xAA55) allow direct bootloader creation.</li>
+  <li><strong>Format-Aware Printing:</strong> The native <code>pin()</code> engine emits raw integers, strings, character formats (<code>%c</code>), and string pointers (<code>%s</code>).</li>
+</ul>
+
+<h3>🚀 Coming Features (OS & Language Expansion)</h3>
+<ul>
+  <li><strong>Pointer Indirection:</strong> Support for raw 64-bit memory addresses to read and write directly to hardware text buffers.</li>
+  <li><strong>Kernel Trap Interfaces:</strong> Native Linux/Bare-Metal <code>syscall</code> blocks to invoke software interrupts natively.</li>
+  <li><strong>Self-Compiling Engine:</strong> Complete removal of the C files (`main.c`, `lexer.c`, `parser.c`, `codegen.c`) by writing the parser inside MicroC.</li>
+  <li><strong>Monolithic Boot Core:</strong> A fully integrated MicroC kernel containing keyboard drivers (PS/2) and custom graphical fönstersystem elements.</li>
 </ul>
 
 <hr />
 
+<div align="center">
 <pre>
    █████████                      █████       ███   █████                       █████                                 
   ███░░░░░███                    ░░███       ░░░   ░░███                       ░░███                                  
@@ -74,62 +91,71 @@
  ░███░░░░░███  ░███ ░░░ ░███ ░░░  ░███ ░███  ░███   ░███    ░███████ ░███ ░░░   ░███     ░███ ░███  ░███ ░░░ ░███████ 
  ░███    ░███  ░███     ░███  ███ ░███ ░███  ░███   ░███ ███░███░░░  ░███  ███  ░███ ███ ░███ ░███  ░███     ░███░░░  
  █████   █████ █████    ░░██████  ████ █████ █████  ░░█████ ░░██████ ░░██████   ░░█████  ░░████████ █████    ░░██████ 
-░░░░░   ░░░░░ ░░░░░      ░░░░░░  ░░░░ ░░░░░ ░░░░░    ░░░░░   ░░░░░░   ░░░░░░     ░░░░░    ░░░░░░░░ ░░░░░      ░░░░░░      
-                                                           
+░░░░░   ░░░░░ ░░░░░      ░░░░░░  ░░░░ ░░░░░ ░░░░░    ░░░░░   ░░░░░░   ░░░░░░     ░░░░░    ░░░░░░░░ ░░░░░      ░░░░░░   
 </pre>
-<p>The compiler's internal execution pipeline is divided into four strictly isolated stages:</p>
+</div>
+<p>The compiler reads code in a linear execution sequence, mutating states and updating the destination binary concurrently:</p>
 
 <pre>
-[ MicroC Source (.mc) ]
-          │
-          ▼
-     [ Lexer.c ] ──────► Generates token stream from raw text
-          │
-          ▼
-    [ Parser.c ] ──────► Validates grammatical structure and syntax tree
-          │
-          ▼
-   [ Codegen.c ] ──────► Translates logic directly into x86-64 opcodes
-          │
-          ▼
-[ Executable Machine Code ]
+[ Raw Input Stream (.mc) ]
+           │
+           ▼
+     [ Lexer Loop ] ─────────────► Filters whitespace & comments (//)
+           │                       Extracts TOKEN_KEYWORD, TOKEN_STRING, etc.
+           ▼
+    [ Single-Pass Parser ] ──────► Matches loops/conditionals & handles bracket states
+           │                       Triggers immediate target opcode mapping
+           ▼
+   [ Codegen Byte Driver ]
+           │
+           ├─── (Output == *.bin) ───► Skipped Header ───► [ Raw Bare-Metal Binary ]
+           │
+           └─── (Output == No Ext) ──► Write ELF64  ─────► [ Linux Executable File ]
 </pre>
 
 <hr />
 
+<div align="center">
 <pre>
-  █████████                         █████                         
- ███░░░░░███                       ░░███                          
-░███    ░░░  █████ ████ ████████   ███████    ██████   █████ █████
-░░█████████ ░░███ ░███ ░░███░░███ ░░░███░    ░░░░░███ ░░███ ░░███ 
- ░░░░░░░░███ ░███ ░███  ░███ ░███   ░███      ███████  ░░░█████░  
- ███    ░███ ░███ ░███  ░███ ░███   ░███ ███ ███░░███   ███░░░███ 
-░░█████████  ░░███████  ████ █████  ░░█████ ░░████████ █████ █████
- ░░░░░░░░░    ░░░░░███ ░░░░ ░░░░░    ░░░░░   ░░░░░░░░ ░░░░░ ░░░░░ 
-              ███ ░███                                            
-             ░░██████                                             
-              ░░░░░░                                                  
+                                █████                         
+                               ░░███                          
+  █████  █████ ████ ████████   ███████    ██████   █████ █████
+ ███░░  ░░███ ░███ ░░███░░███ ░░░███░    ░░░░░███ ░░███ ░░███ 
+░░█████  ░███ ░███  ░███ ░███   ░███      ███████  ░░░█████░  
+ ░░░░███ ░███ ░███  ░███ ░███   ░███ ███ ███░░███   ███░░░███ 
+ ██████  ░░███████  ████ █████  ░░█████ ░░████████ █████ █████
+░░░░░░    ░░░░░███ ░░░░ ░░░░░    ░░░░░   ░░░░░░░░ ░░░░░ ░░░░░ 
+          ███ ░███                                            
+         ░░██████                                             
+          ░░░░░░                                                
 </pre>
-<p>Example of valid MicroC code initializing a minimal boot environment:</p>
+</div>
+<p>Example of valid MicroC code initializing variables, looping with a single pass, and embedding hardware switches:</p>
 
 <details>
-<summary>View boot.mc</summary>
+<summary>View test.mc</summary>
 <br />
 
-```mc
-head(asm-x86-64 custom){ 
-    (asmb) { 
-        cli            // Disable interrupts
-        hlt            // Halt the processor
-        pad_boot       // Pad the binary to the 510-byte boundary
-        sign_boot      // Write boot signature 0xAA55 at bytes 511-512
-    } (asme) 
+```c
+head(asm-x86-64 custom) {
+    i64 x = 5
+    while (x = x - 1) {
+        pin("%c", x)
+    }
+    (asmb) {
+        cli
+        hlt
+        pad_boot
+        sign_boot
+    }
+    (asme)
 }
 ```
 </details>
 
 <hr />
 
+<div align="center">
 <pre>
  ███████████              ███  ████      █████  ███                     
 ░░███░░░░░███            ░░░  ░░███     ░░███  ░░░                      
@@ -143,18 +169,23 @@ head(asm-x86-64 custom){
                                                                ░░██████ 
                                                                 ░░░░░░  
 </pre>
+</div>
 
 <h3>1. Clone the repository</h3>
 <pre>git clone https://github.com MicroC</pre>
 
 <h3>2. Compile the bootstrap compiler via GCC</h3>
-<pre>gcc codegen.c lexer.c parser.c main.c -o microc</pre>
+<pre>gcc lexer.c codegen.c parser.c main.c -o microc</pre>
 
-<h3>3. Generate machine code from source</h3>
-<pre>./microc test.mc -o output</pre>
+<h3>3. Generate a native Linux executable</h3>
+<pre>./microc test.mc -o my_program&#10;chmod +x my_program&#10;./my_program</pre>
+
+<h3>4. Generate a 512-byte raw bootsector binary</h3>
+<pre>./microc test.mc -o bootloader.bin</pre>
 
 <hr />
 
+<div align="center">
 <pre>
  ███████████                          █████                                    
 ░░███░░░░░███                        ░░███                                     
@@ -167,17 +198,17 @@ head(asm-x86-64 custom){
                                                                       ░███     
                                                                       █████    
                                                                      ░░░░░     
-                                     
 </pre>
+</div>
 
 <details>
-<summary>Phase 1: Compiler Engineering (In Progress)</summary>
+<summary>Phase 1: Compiler Engineering (Completed Bootstrap)</summary>
 <ul>
   <li>[x] Raw tokenization and lexical scanning</li>
-  <li>[x] Grammatical parsing of control structures</li>
+  <li>[x] Grammatical single-pass parsing with backpatching</li>
   <li>[x] Direct x86-64 opcode emission</li>
-  <li>[ ] Implementation of line-based error reporting</li>
-  <li>[ ] Type checking and variable stack allocation</li>
+  <li>[x] Automatic ELF64 and raw binary terminal switching</li>
+  <li>[x] Custom <code>pin</code> syntax supporting integers and format strings</li>
 </ul>
 </details>
 
