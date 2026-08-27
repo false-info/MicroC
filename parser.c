@@ -34,7 +34,8 @@ extern void patch_jump_distance(long patch_pos, long target_pos, FILE* out);
 extern void emit_load_to_rsi(int idx, FILE* out);
 extern void emit_pin_raw_int(int val, FILE* out);
 extern void emit_pin_fmt(const char* fmt, FILE* out);
-extern void emit_call_function(const char* fn_name, FILE* out);
+extern void emit_read_file_byte_syscall(FILE* out);
+extern void emit_write_byte_syscall(int val, FILE* out);
 
 void parse_microc_program(FILE* input_file, FILE* output_file) {
     Token token;
@@ -109,9 +110,7 @@ void parse_microc_program(FILE* input_file, FILE* output_file) {
                 }
                 
                 long patch_pos = emit_jump_if_not_equal(output_file);
-                
                 parse_microc_program(input_file, output_file);
-                
                 long end_pos = ftell(output_file);
                 patch_jump_distance(patch_pos, end_pos, output_file);
             }
@@ -138,12 +137,9 @@ void parse_microc_program(FILE* input_file, FILE* output_file) {
                 }
                 
                 long patch_pos = emit_jump_if_not_equal(output_file);
-                
                 parse_microc_program(input_file, output_file);
-                
                 long jump_back_pos = emit_jump_always(output_file);
                 patch_jump_distance(jump_back_pos, loop_start, output_file);
-                
                 long end_pos = ftell(output_file);
                 patch_jump_distance(patch_pos, end_pos, output_file);
             }
@@ -174,9 +170,14 @@ void parse_microc_program(FILE* input_file, FILE* output_file) {
                 Token var_name = next_token(input_file);
                 next_token(input_file);
                 Token val = next_token(input_file);
-                
                 int idx = get_or_register_variable(var_name.text);
                 emit_store_int(idx, strtol(val.text, NULL, 0), output_file);
+            }
+            else if (strcmp(token.text, "write_byte") == 0) {
+                next_token(input_file);
+                Token arg = next_token(input_file);
+                next_token(input_file);
+                emit_write_byte_syscall(strtol(arg.text, NULL, 0), output_file);
             }
             else if (is_valid_identifier(token.text)) {
                 char var_name[256];
@@ -187,27 +188,31 @@ void parse_microc_program(FILE* input_file, FILE* output_file) {
                     Token val = next_token(input_file);
                     int idx = get_or_register_variable(var_name);
                     
-                    Token next_op = next_token(input_file);
-                    if (strcmp(next_op.text, "(") == 0) {
+                    if (strcmp(val.text, "read_file_byte") == 0) {
                         next_token(input_file);
-                        emit_call_function(val.text, output_file);
+                        next_token(input_file);
+                        emit_read_file_byte_syscall(output_file);
                         emit_store_rax_to_variable(idx, output_file);
                     }
-                    else if (strcmp(next_op.text, "+") == 0) {
-                        Token right_num = next_token(input_file);
-                        emit_load_variable(idx, output_file);
-                        emit_add_int(strtol(right_num.text, NULL, 0), output_file);
-                        emit_store_rax_to_variable(idx, output_file);
-                    } else if (strcmp(next_op.text, "-") == 0) {
-                        Token right_num = next_token(input_file);
-                        emit_load_variable(idx, output_file);
-                        emit_sub_int(strtol(right_num.text, NULL, 0), output_file);
-                        emit_store_rax_to_variable(idx, output_file);
-                    } else {
-                        emit_store_int(idx, strtol(val.text, NULL, 0), output_file);
+                    else {
+                        Token next_op = next_token(input_file);
+                        if (strcmp(next_op.text, "+") == 0) {
+                            Token right_num = next_token(input_file);
+                            emit_load_variable(idx, output_file);
+                            emit_add_int(strtol(right_num.text, NULL, 0), output_file);
+                            emit_store_rax_to_variable(idx, output_file);
+                        } else if (strcmp(next_op.text, "-") == 0) {
+                            Token right_num = next_token(input_file);
+                            emit_load_variable(idx, output_file);
+                            emit_sub_int(strtol(right_num.text, NULL, 0), output_file);
+                            emit_store_rax_to_variable(idx, output_file);
+                        } else {
+                            emit_store_int(idx, strtol(val.text, NULL, 0), output_file);
+                        }
                     }
                 }
             }
         }
     }
 }
+
