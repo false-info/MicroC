@@ -192,3 +192,4 @@ void emit_pin_fmt(const char* format_str, FILE* output_file) {
         fputc((dummy_addr >> (i * 8)) & 0xFF, output_file);
     }
 }
+
