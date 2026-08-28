@@ -19,7 +19,7 @@ typedef struct {
 
 extern Token next_token(FILE* input);
 extern int is_valid_identifier(const char* text);
-
+extern void emit_debug_char(FILE* out);
 extern void emit_program_prolog(FILE* out);
 extern void emit_program_epilog(FILE* out);
 extern void emit_function_epilog(FILE* out);
@@ -201,15 +201,15 @@ static void compiler_error(
         text
     );
 
-    if (has_lookahead)
-        fprintf(
-            stderr,
-            "Token: %s\n",
-            lookahead.text
-        );
+    fprintf(
+        stderr,
+        "Kraschade vid token-text: '%s'\n",
+        lookahead.text
+    );
 
     exit(1);
 }
+
 
 static Token take_token(
     FILE* input
@@ -217,11 +217,15 @@ static Token take_token(
 {
     if (has_lookahead) {
         has_lookahead = 0;
+        printf("[DEBUG] Take token (from lookahead): '%s' (Type: %d)\n", lookahead.text, lookahead.type);
         return lookahead;
     }
 
-    return next_token(input);
+    Token t = next_token(input);
+    printf("[DEBUG] Read token (from lexer): '%s' (Type: %d)\n", t.text, t.type);
+    return t;
 }
+
 
 static Token peek_token(
     FILE* input
@@ -549,6 +553,12 @@ static void parse_call(
 
         return;
     }
+        if (!strcmp(name, "debug_char")) {
+        parse_expression(input, output, 0);
+        expect(input, ")");
+        emit_debug_char(output);
+        return;
+    }
 
     if (!strcmp(name, "file_read8")) {
         parse_expression(
@@ -569,37 +579,14 @@ static void parse_call(
         return;
     }
 
-    if (!strcmp(name, "file_write8")) {
-        parse_expression(
-            input,
-            output,
-            0
-        );
-
-        emit_push_rax(
-            output
-        );
-
-        expect(
-            input,
-            ","
-        );
-
-        parse_expression(
-            input,
-            output,
-            0
-        );
-
-        emit_pop_reg(
-            7,
-            output
-        );
-
-        emit_file_write8(
-            output
-        );
-
+        if (!strcmp(name, "file_write8")) {
+        parse_expression(input, output, 0);
+        emit_push_rax(output);
+        expect(input, ",");
+        parse_expression(input, output, 0);
+        emit_pop_reg(7, output);
+        emit_file_write8(output);
+        expect(input, ")");
         return;
     }
 
@@ -622,44 +609,16 @@ static void parse_call(
         return;
     }
 
-    if (!strcmp(name, "file_seek")) {
-        parse_expression(
-            input,
-            output,
-            0
-        );
-
-        emit_push_rax(
-            output
-        );
-
-        expect(
-            input,
-            ","
-        );
-
-        parse_expression(
-            input,
-            output,
-            0
-        );
-
-        emit_pop_reg(
-            7,
-            output
-        );
-
-        emit_file_seek(
-            output
-        );
-
-        expect(
-            input,
-            ")"
-        );
-
+        if (!strcmp(name, "file_seek")) {
+        parse_expression(input, output, 0);
+        emit_push_rax(output);
+        expect(input, ",");
+        parse_expression(input, output, 0);
+        emit_pop_reg(7, output);
+        emit_file_seek(output);
+        expect(input, ")");
         return;
-    }
+	}
 
     if (!strcmp(name, "mem_read8")) {
         parse_expression(
@@ -680,42 +639,14 @@ static void parse_call(
         return;
     }
 
-    if (!strcmp(name, "mem_write8")) {
-        parse_expression(
-            input,
-            output,
-            0
-        );
-
-        emit_push_rax(
-            output
-        );
-
-        expect(
-            input,
-            ","
-        );
-
-        parse_expression(
-            input,
-            output,
-            0
-        );
-
-        emit_pop_reg(
-            7,
-            output
-        );
-
-        expect(
-            input,
-            ")"
-        );
-
-        emit_mem_write8(
-            output
-        );
-
+        if (!strcmp(name, "mem_write8")) {
+        parse_expression(input, output, 0);
+        emit_push_rax(output);
+        expect(input, ",");
+        parse_expression(input, output, 0);
+        emit_pop_reg(7, output);
+        expect(input, ")");
+        emit_mem_write8(output);
         return;
     }
 
@@ -738,42 +669,14 @@ static void parse_call(
         return;
     }
 
-    if (!strcmp(name, "mem_write64")) {
-        parse_expression(
-            input,
-            output,
-            0
-        );
-
-        emit_push_rax(
-            output
-        );
-
-        expect(
-            input,
-            ","
-        );
-
-        parse_expression(
-            input,
-            output,
-            0
-        );
-
-        emit_pop_reg(
-            7,
-            output
-        );
-
-        expect(
-            input,
-            ")"
-        );
-
-        emit_mem_write64(
-            output
-        );
-
+        if (!strcmp(name, "mem_write64")) {
+        parse_expression(input, output, 0);
+        emit_push_rax(output);
+        expect(input, ",");
+        parse_expression(input, output, 0);
+        emit_pop_reg(7, output);
+        expect(input, ")");
+        emit_mem_write64(output);
         return;
     }
 
@@ -1329,20 +1232,22 @@ static void parse_assignment(
         peek_token(input);
 
     if (token.type == TOKEN_STRING)
-        compiler_error(
-            "String cannot initialize i64"
-        );
+		compiler_error(
+			"String cannot initialize i64"
+		);
 
-    parse_expression(
-        input,
-        output,
-        0
-    );
+	parse_expression(
+		input,
+		output,
+		0
+	);
 
-    emit_store_rax_to_variable(
-        index,
-        output
-    );
+	if (strlen(current_function) > 0) {
+		emit_store_rax_to_variable(
+			index,
+			output
+		);
+	}
 }
 
 static void parse_pin(
@@ -1483,58 +1388,16 @@ static void parse_while(
         "("
     );
 
-    Token left =
-        take_token(input);
+    parse_expression(
+        input,
+        output,
+        0
+    );
 
-    Token op =
-        take_token(input);
-
-    if (!strcmp(
-            op.text,
-            "="
-        )) {
-
-        parse_expression(
-            input,
-            output,
-            0
-        );
-
-        expect(
-            input,
-            ")"
-        );
-
-        emit_store_rax_to_variable(
-            variable(left.text),
-            output
-        );
-
-        emit_load_variable(
-            variable(left.text),
-            output
-        );
-    }
-    else {
-        has_lookahead = 1;
-        lookahead = op;
-
-        has_lookahead = 1;
-
-        Token fake = left;
-        lookahead = fake;
-
-        parse_expression(
-            input,
-            output,
-            0
-        );
-
-        expect(
-            input,
-            ")"
-        );
-    }
+    expect(
+        input,
+        ")"
+    );
 
     long exit =
         emit_jump_if_zero(
@@ -2093,97 +1956,122 @@ static void parse_function(
 }
 
 void parse_microc_program(
-    FILE* input,
-    FILE* output
+	FILE* input,
+	FILE* output
 )
 {
-    while (1) {
-        Token token =
-            take_token(input);
+	while (1) {
+		Token token =
+			take_token(input);
 
-        if (token.type == TOKEN_EOF)
-            break;
+		if (token.type == TOKEN_EOF)
+			break;
 
-        if (!strcmp(
-                token.text,
-                "head"
-            )) {
+		if (!strcmp(
+				token.text,
+				"head"
+			)) {
 
-            expect(
-                input,
-                "("
-            );
+			expect(
+				input,
+				"("
+			);
 
-            Token target =
-                take_token(input);
+			Token target =
+				take_token(input);
 
-            Token mode =
-                take_token(input);
+			Token mode =
+				take_token(input);
 
-            if (strcmp(
-                    target.text,
-                    "asm-x86-64"
-                ) != 0 ||
-                strcmp(
-                    mode.text,
-                    "custom"
-                ) != 0)
-                compiler_error(
-                    "Invalid head"
-                );
+			if (strcmp(
+					target.text,
+					"asm-x86-64"
+				) != 0 ||
+				strcmp(
+					mode.text,
+					"custom"
+				) != 0)
+				compiler_error(
+					"Invalid head\n"
+				);
 
-            expect(
-                input,
-                ")"
-            );
+			expect(
+				input,
+				")"
+			);
 
-            expect(
-                input,
-                "{"
-            );
+			expect(
+				input,
+				"{"
+			);
 
-            continue;
-        }
+			continue;
+		}
 
-        if (!strcmp(
-                token.text,
-                "fn"
-            )) {
+		if (!strcmp(
+				token.text,
+				"fn"
+			)) {
 
-            parse_function(
-                input,
-                output
-            );
+			parse_function(
+				input,
+				output
+			);
 
-            continue;
-        }
+			continue;
+		}
 
-        if (!strcmp(
-                token.text,
-                "}"
-            ))
-            continue;
+		if (!strcmp(
+				token.text,
+				"}"
+			))
+			continue;
 
-        has_lookahead = 1;
-        lookahead = token;
+		if (!strcmp(
+				token.text,
+				"i64"
+			)) {
 
-        parse_statement(
-            input,
-            output
-        );
-    }
+			Token name =
+				take_token(input);
 
-    resolve_calls(
-        output
-    );
+			if (!is_valid_identifier(
+					name.text
+				)) {
+				compiler_error(
+					"Invalid variable name\n"
+				);
+			}
 
-    if (main_position < 0)
-        compiler_error(
-            "Missing main function"
-        );
+			parse_assignment(
+				input,
+				output,
+				name.text
+			);
 
-    patch_elf_entry(
-        output,
-        main_position
-    );
+			continue;
+		}
+
+		has_lookahead = 1;
+		lookahead = token;
+
+		parse_statement(
+			input,
+			output
+		);
+	}
+
+	resolve_calls(
+		output
+	);
+
+	if (main_position < 0)
+		compiler_error(
+			"Missing main function\n"
+		);
+
+	patch_elf_entry(
+		output,
+		main_position
+	);
 }

@@ -43,7 +43,6 @@ head(asm-x86-64 custom) {
 		while (current == 32) {
 			read8()
 		}
-
 		while (current == 9) {
 			read8()
 		}
@@ -58,7 +57,6 @@ head(asm-x86-64 custom) {
 		if (c < 48) {
 			return 0
 		}
-
 		if (c > 57) {
 			return 0
 		}
@@ -72,7 +70,6 @@ head(asm-x86-64 custom) {
 				return 1
 			}
 		}
-
 		if (c >= 97) {
 			if (c <= 122) {
 				return 1
@@ -90,7 +87,6 @@ head(asm-x86-64 custom) {
 		if (is_alpha(c) == 1) {
 			return 1
 		}
-
 		if (is_digit(c) == 1) {
 			return 1
 		}
@@ -100,7 +96,6 @@ head(asm-x86-64 custom) {
 
 	fn read_identifier() {
 		value = 0
-
 		while (is_alnum(current) == 1) {
 			value = value + current
 			read8()
@@ -109,7 +104,6 @@ head(asm-x86-64 custom) {
 
 	fn read_number() {
 		value = 0
-
 		while (is_digit(current) == 1) {
 			value = value * 10
 			value = value + current
@@ -122,7 +116,6 @@ head(asm-x86-64 custom) {
 		emit8(0xC7)
 		emit8(0xC0)
 		emit32(60)
-
 		emit8(0x48)
 		emit8(0x31)
 		emit8(0xFF)
@@ -133,7 +126,6 @@ head(asm-x86-64 custom) {
 
 	fn emit_prolog() {
 		emit8(0x55)
-
 		emit8(0x48)
 		emit8(0x89)
 		emit8(0xE5)
@@ -155,7 +147,6 @@ head(asm-x86-64 custom) {
 		emit8(0x83)
 		emit8(0xEC)
 		emit8(8)
-
 		emit8(0xC6)
 		emit8(0x04)
 		emit8(0x24)
@@ -193,7 +184,6 @@ head(asm-x86-64 custom) {
 		read8()
 		read8()
 		read8()
-
 		skip_space()
 
 		read8()
@@ -214,7 +204,6 @@ head(asm-x86-64 custom) {
 
 	fn parse_asm() {
 		while (current != 0) {
-
 			if (current == 99) {
 				emit8(0xFA)
 			}
@@ -231,12 +220,11 @@ head(asm-x86-64 custom) {
 		}
 	}
 
-	fn main() {
+	fn main() { 
 
 		read8()
 
 		while (current != 0) {
-
 			skip_space()
 
 			if (current == 0) {
@@ -270,7 +258,13 @@ head(asm-x86-64 custom) {
 				read_number()
 			}
 
-			read8()
+			if (is_alnum(current) == 0) {
+				if (current != 104) {
+					if (current != 40) {
+						read8()
+					}
+				}
+			}
 		}
 
 		emit_exit()

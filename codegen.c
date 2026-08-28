@@ -22,6 +22,8 @@ int var_count = 0;
 static StringItem strings[MAX_STRINGS];
 static int string_count = 0;
 
+extern uint64_t microc_mem_addr;
+
 static void write_u32(
     FILE* out,
     uint32_t value
@@ -174,7 +176,6 @@ void patch_elf_entry(
         SEEK_SET
     );
 }
-
 void patch_elf_sizes(
     FILE* out
 )
@@ -558,7 +559,6 @@ void emit_pop_reg(
     else
         exit(1);
 }
-
 void emit_binary_op(
     const char* op,
     FILE* out
@@ -882,11 +882,12 @@ long emit_string_load(
 
     return patch;
 }
-
 void emit_open_file(
     FILE* out
 )
 {
+    static int open_count = 0;
+
     fputc(0x48, out);
     fputc(0xc7, out);
     fputc(0xc0, out);
@@ -903,6 +904,19 @@ void emit_open_file(
 
     fputc(0x0f, out);
     fputc(0x05, out);
+
+    if (open_count == 0) {
+        fputc(0x48, out);
+        fputc(0x89, out);
+        fputc(0x45, out);
+        fputc(0xf8, out);
+        open_count = 1;
+    } else {
+        fputc(0x48, out);
+        fputc(0x89, out);
+        fputc(0x45, out);
+        fputc(0xf0, out);
+    }
 }
 
 void emit_close_file(
@@ -927,17 +941,18 @@ void emit_file_read8(
 )
 {
     fputc(0x48, out);
+    fputc(0x8b, out);
+    fputc(0x45, out);
+    fputc(0xf8, out);
+
+    fputc(0x48, out);
     fputc(0x89, out);
     fputc(0xc7, out);
 
     fputc(0x48, out);
-    fputc(0x83, out);
-    fputc(0xec, out);
-    fputc(8, out);
-
-    fputc(0x48, out);
-    fputc(0x89, out);
-    fputc(0xe6, out);
+    fputc(0x8d, out);
+    fputc(0x75, out);
+    fputc(0xe8, out);
 
     fputc(0x48, out);
     fputc(0xc7, out);
@@ -955,13 +970,8 @@ void emit_file_read8(
     fputc(0x48, out);
     fputc(0x0f, out);
     fputc(0xb6, out);
-    fputc(0x04, out);
-    fputc(0x24, out);
-
-    fputc(0x48, out);
-    fputc(0x83, out);
-    fputc(0xc4, out);
-    fputc(8, out);
+    fputc(0x45, out);
+    fputc(0xe8, out);
 }
 
 void emit_file_write8(
@@ -970,21 +980,24 @@ void emit_file_write8(
 {
     fputc(0x48, out);
     fputc(0x89, out);
-    fputc(0xc7, out);
+    fputc(0xc1, out);
 
     fputc(0x48, out);
-    fputc(0x83, out);
-    fputc(0xec, out);
-    fputc(8, out);
+    fputc(0x8d, out);
+    fputc(0x75, out);
+    fputc(0xe8, out);
 
-    fputc(0x40, out);
     fputc(0x88, out);
-    fputc(0x34, out);
-    fputc(0x24, out);
+    fputc(0x0e, out);
+
+    fputc(0x48, out);
+    fputc(0x8b, out);
+    fputc(0x45, out);
+    fputc(0xf0, out);
 
     fputc(0x48, out);
     fputc(0x89, out);
-    fputc(0xe6, out);
+    fputc(0xc7, out);
 
     fputc(0x48, out);
     fputc(0xc7, out);
@@ -998,11 +1011,6 @@ void emit_file_write8(
 
     fputc(0x0f, out);
     fputc(0x05, out);
-
-    fputc(0x48, out);
-    fputc(0x83, out);
-    fputc(0xc4, out);
-    fputc(8, out);
 }
 
 void emit_file_size(
@@ -1153,7 +1161,9 @@ void emit_strlen(
     fputc(0xc1, out);
 
     fputc(0xeb, out);
-    fputc(0xf1, out);
+    fputc((unsigned char)(
+        pos(out) + 1
+    ), out);
 }
 
 void emit_strcmp(
@@ -1619,3 +1629,46 @@ void emit_program_epilog(
         out
     );
 }
+
+void emit_debug_char(
+    FILE* out
+)
+{
+    fputc(0x48, out);
+    fputc(0x89, out);
+    fputc(0xc6, out);
+
+    fputc(0x48, out);
+    fputc(0x83, out);
+    fputc(0xec, out);
+    fputc(8, out);
+
+    fputc(0x48, out);
+    fputc(0x89, out);
+    fputc(0x34, out);
+    fputc(0x24, out);
+
+    fputc(0x48, out);
+    fputc(0xc7, out);
+    fputc(0xc7, out);
+    write_u32(out, 1);
+
+    fputc(0x48, out);
+    fputc(0xc7, out);
+    fputc(0xc2, out);
+    write_u32(out, 1);
+
+    fputc(0x48, out);
+    fputc(0xc7, out);
+    fputc(0xc0, out);
+    write_u32(out, 1);
+
+    fputc(0x0f, out);
+    fputc(0x05, out);
+
+    fputc(0x48, out);
+    fputc(0x83, out);
+    fputc(0xc4, out);
+    fputc(8, out);
+}
+
