@@ -1,5 +1,7 @@
 # MicroC Compiler Address Helper
 
+## Compiler addresses
+
 | Address | Meaning |
 |---|---|
 | `0x800000` | Input file descriptor |
@@ -27,3 +29,28 @@
 | `0x801000` | Token 0 text buffer |
 | `0x801200` | Token 1 text buffer |
 | `0x840000` | Compiler data/memory area |
+
+## Do not use
+
+### Reserved by the MicroC compiler
+
+| Range | Reason |
+|---|---|
+| `0x800000 - 0x8000FF` | Compiler state |
+| `0x800100 - 0x80013F` | Token metadata |
+| `0x801000 - 0x8010FF` | Token 0 text |
+| `0x801200 - 0x8012FF` | Token 1 text |
+| `0x840000+` | Dynamic compiler data |
+
+Do not manually store unrelated data in these ranges unless the compiler memory layout is intentionally changed.
+
+### Linux x86-64 userspace
+
+| Address / Range | Reason |
+|---|---|
+| `0x0` | NULL pointer |
+| Low NULL page | Normally unmapped |
+| Kernel address space | Not accessible from userspace |
+| Non-canonical addresses | Invalid x86-64 virtual addresses |
+
+These Linux restrictions do not necessarily apply to bare-metal MicroC programs or an operating system kernel.
