@@ -36,12 +36,74 @@ head(custom) {
         out8(value >> 24)
         return value
     }
-	fn print_disgnostic_summary() {
-		I64 errors = mem_read64(0x8000E0)
-		I64 warnings = mem_read64(0x8000E8)
-		pin("\nmcc: errors: %I64   warnings: %I64\n", errors, warnings)
-		return 0
-	}
+
+    fn print_diagnostic_summary() {
+        I64 errors = mem_read64(0x8000D0)
+        I64 warnings = mem_read64(0x8000D8)
+
+        if (errors == 0) {
+            if (warnings == 0) {
+                return 0
+            }
+        }
+
+        pin("\nmcc: %I64 errors, %I64 warnings\n", errors, warnings)
+        return 0
+    }
+
+    fn print_output_info(I64 path, I64 size) {
+        pin("mcc: created %s (%I64 bytes)\n", path, size)
+        return 0
+    }
+
+    fn compiler_error(I64 code) {
+        I64 errors = mem_read64(0x8000D0)
+        mem_write64(0x8000D0, errors + 1)
+        mem_write64(0x800078, 1)
+
+        I64 path = mem_read64(0x8000E0)
+        I64 line = mem_read64(0x8000E8)
+        I64 column = mem_read64(0x8000F0)
+
+        pin("%s:%I64:%I64: error: ", path, line, column)
+
+        if (code == 2) {
+            pin("custom syntax requires custom in head()\n")
+            return 0
+        }
+
+        if (code == 3) {
+            pin("inline x86-64 assembly requires asm-x86-64 in head()\n")
+            return 0
+        }
+
+        pin("compilation failed\n")
+        return 0
+    }
+
+    fn compiler_warning(I64 code) {
+        I64 warnings = mem_read64(0x8000D8)
+        mem_write64(0x8000D8, warnings + 1)
+
+        I64 path = mem_read64(0x8000E0)
+        I64 line = mem_read64(0x8000E8)
+        I64 column = mem_read64(0x8000F0)
+
+        pin("%s:%I64:%I64: warning: ", path, line, column)
+
+        if (code == 1) {
+            pin("custom enabled in head() but never used\n")
+            return 0
+        }
+
+        if (code == 2) {
+            pin("asm-x86-64 enabled in head() but never used\n")
+            return 0
+        }
+
+        pin("compiler warning\n")
+        return 0
+    }
 
     fn out64(I64 value) {
         out32(value)
@@ -90,8 +152,7 @@ head(custom) {
 
     fn use_custom_feature() {
         if (mem_read64(0x800098) == 0) {
-            pin("MicroC compiler error: custom syntax requires custom in head()\n")
-            mem_write64(0x800078, 1)
+            compiler_error(2)
             return 0
         }
         mem_write64(0x8000A8, 1)
@@ -100,8 +161,7 @@ head(custom) {
 
     fn use_asm_feature() {
         if (mem_read64(0x8000A0) == 0) {
-            pin("MicroC compiler error: inline x86-64 assembly requires asm-x86-64 in head()\n")
-            mem_write64(0x800078, 1)
+            compiler_error(3)
             return 0
         }
         mem_write64(0x8000B0, 1)
@@ -111,20 +171,19 @@ head(custom) {
     fn warn_unused_features() {
         if (mem_read64(0x800098) != 0) {
             if (mem_read64(0x8000A8) == 0) {
-                pin("warning: custom enabled in head() but never used\n")
+                compiler_warning(1)
             }
         }
         if (mem_read64(0x8000A0) != 0) {
             if (mem_read64(0x8000B0) == 0) {
-                pin("warning: asm-x86-64 enabled in head() but never used\n")
+                compiler_warning(2)
             }
         }
         return 0
     }
 
     fn fail() {
-        mem_write64(0x800078, 1)
-        pin("MicroC compiler error\n")
+        compiler_error(1)
         return 0
     }
 
@@ -182,14 +241,28 @@ head(custom) {
     fn read_char() {
         I64 position = mem_read64(0x800010)
         I64 size = mem_read64(0x800018)
+
         if (position >= size) {
             mem_write64(0x800020, 0)
             return 0
         }
+
         I64 fd = in_fd()
         I64 c = file_read8(fd)
+
         mem_write64(0x800010, position + 1)
         mem_write64(0x800020, c)
+
+        I64 line = mem_read64(0x8000C0)
+        I64 column = mem_read64(0x8000C8)
+
+        if (c == 10) {
+            mem_write64(0x8000C0, line + 1)
+            mem_write64(0x8000C8, 0)
+            return c
+        }
+
+        mem_write64(0x8000C8, column + 1)
         return c
     }
 
@@ -287,6 +360,9 @@ head(custom) {
                 }
             }
         }
+
+        mem_write64(0x8000E8, mem_read64(0x8000C0))
+        mem_write64(0x8000F0, mem_read64(0x8000C8))
 
         if (c == 0) {
             set_token(slot, 0)
@@ -2461,6 +2537,13 @@ head(custom) {
         mem_write64(0x8000A8, 0)
         mem_write64(0x8000B0, 0)
         mem_write64(0x8000B8, 0)
+        mem_write64(0x8000C0, 1)
+        mem_write64(0x8000C8, 0)
+        mem_write64(0x8000D0, 0)
+        mem_write64(0x8000D8, 0)
+        mem_write64(0x8000E0, 0)
+        mem_write64(0x8000E8, 1)
+        mem_write64(0x8000F0, 1)
         return 0
     }
 
@@ -2468,7 +2551,7 @@ head(custom) {
         I64 count = argc()
 
         if (count < 4) {
-            pin("usage: compiler input.mc -o output\n")
+            pin("usage: mcc input.mc -o output\n")
             return 1
         }
 
@@ -2477,7 +2560,7 @@ head(custom) {
         I64 output_path = argv(3)
 
         if (strcmp(option, "-o") != 0) {
-            pin("usage: compiler input.mc -o output\n")
+            pin("usage: mcc input.mc -o output\n")
             return 1
         }
 
@@ -2495,6 +2578,7 @@ head(custom) {
         }
 
         initialize_state(input, output)
+        mem_write64(0x8000E0, input_path)
 
         I64 raw = ends_bin(output_path)
         mem_write64(0x800030, raw)
@@ -2516,12 +2600,23 @@ head(custom) {
 
         read_char()
         parse_program()
-        finish_output()
+
+        if (failed() == 0) {
+            finish_output()
+        }
+
+        I64 output_size = tell()
 
         close(input)
         close(output)
-		print_disgnostic_summary()
-        if (failed() != 0) { return 1 }
+
+        print_diagnostic_summary()
+
+        if (failed() != 0) {
+            return 1
+        }
+
+        print_output_info(output_path, output_size)
         return 0
     }
 }

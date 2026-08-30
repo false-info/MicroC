@@ -1,6 +1,6 @@
 head(custom) {
     fn biggest(I64 x, I64 y) {
-        if (x >= y) {
+        if (x <= y) {
             return x
         }
         return y
