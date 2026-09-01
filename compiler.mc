@@ -1703,7 +1703,17 @@ head(custom) {
         expect_sym(41)
         I64 jump = emit_jz()
         expect_sym(123)
-        parse_block()
+		parse_block()
+		if (look_is("else") != 0) {
+			I64 end_jmp = emit_jmp()
+			patch_rel(jump, tell())
+			take()
+			expect_sym(123)
+			parse_block()
+			patch_rel(end_jmp, tell())
+			return 0
+		}
+        
         patch_rel(jump, tell())
         return 0
     }
