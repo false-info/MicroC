@@ -1,5 +1,5 @@
 head(custom) {
-    fn smallest(I64 a, I64 a) {
+    fn smallest(I64 a, I64 b) {
         if (a <= b) {
             return a
         }
