@@ -57,6 +57,9 @@ head(custom) {
     }
 
     fn compiler_error(I64 code) {
+		if (failed() != 0) {
+			return 0
+		}
         I64 errors = mem_read64(0x8000D0)
         mem_write64(0x8000D0, errors + 1)
         mem_write64(0x800078, 1)
@@ -76,6 +79,41 @@ head(custom) {
             pin("inline x86-64 assembly requires asm-x86-64 in head()\n")
             return 0
         }
+		if (code == 4) {
+			pin("assignment to undeclared variable\n")
+			return 0
+		}
+		if (code == 5) {
+			pin("variable already declared\n")
+		}
+		if (code == 6) {
+			pin("identifier too long\n")
+			return 0
+		}
+
+		if (code == 7) {
+			pin("string literal too long\n")
+			return 0
+		}
+		if (code == 8) {
+			pin("wrong number of function arguments\n")
+			return 0
+		}
+
+		if (code == 9) {
+			pin("function already declared\n")
+			return 0
+		}
+
+		if (code == 10) {
+			pin("unterminated string literal\n")
+			return 0
+		}
+
+		if (code == 11) {
+			pin("compiler string pool exhausted\n")
+			return 0
+		}
 
         pin("compilation failed\n")
         return 0
@@ -217,13 +255,12 @@ head(custom) {
     }
 
     fn is_ident_more(I64 c) {
-        I64 a = is_alpha(c)
-        if (a != 0) { return 1 }
-        I64 d = is_digit(c)
-        if (d != 0) { return 1 }
-        if (c == 45) { return 1 }
-        return 0
-    }
+		I64 a = is_alpha(c)
+		if (a != 0) { return 1 }
+		I64 d = is_digit(c)
+		if (d != 0) { return 1 }
+		return 0
+	}
 
     fn hex_value(I64 c) {
         if (c >= 48) {
@@ -370,36 +407,64 @@ head(custom) {
         }
 
         if (c == 34) {
-            set_token(slot, 3)
-            read_char()
-            c = current_char()
-            I64 length = 0
-            while (c != 0) {
-                if (c == 34) {
-                    c = 0
-                }
-                if (c != 0) {
-                    if (c == 92) {
-                        read_char()
-                        c = current_char()
-                        if (c == 110) { c = 10 }
-                        if (c == 114) { c = 13 }
-                        if (c == 116) { c = 9 }
-                    }
-                    if (length < 255) {
-                        mem_write8(text + length, c)
-                        length = length + 1
-                    }
-                    read_char()
-                    c = current_char()
-                }
-            }
-            mem_write8(text + length, 0)
-            mem_write64(base + 16, length)
-            if (current_char() == 34) { read_char() }
-            return 3
-        }
+			set_token(slot, 3)
 
+			read_char()
+			c = current_char()
+
+			I64 length = 0
+			I64 closed = 0
+
+			while (c != 0) {
+
+				if (c == 34) {
+					closed = 1
+					c = 0
+				}
+
+				if (c != 0) {
+
+					if (c == 92) {
+						read_char()
+						c = current_char()
+
+						if (c == 0) {
+							compiler_error(10)
+							return 0
+						}
+
+						if (c == 110) { c = 10 }
+						if (c == 114) { c = 13 }
+						if (c == 116) { c = 9 }
+					}
+
+					if (length >= 255) {
+						compiler_error(7)
+						return 0
+					}
+
+					mem_write8(text + length, c)
+					length = length + 1
+
+					read_char()
+					c = current_char()
+				}
+			}
+
+			if (closed == 0) {
+				compiler_error(10)
+				return 0
+			}
+
+			mem_write8(text + length, 0)
+			mem_write64(base + 16, length)
+
+			if (current_char() == 34) {
+				read_char()
+			}
+
+			return 3
+		}
         I64 digit = is_digit(c)
         if (digit != 0) {
             set_token(slot, 2)
@@ -475,10 +540,12 @@ head(custom) {
             I64 h = 5381
             I64 more = is_ident_more(c)
             while (more != 0) {
-                if (length2 < 255) {
-                    mem_write8(text + length2, c)
-                    length2 = length2 + 1
+                if (length2 >= 255) {
+					compiler_error(6)
+					return 0
                 }
+				mem_write8(text + length2, c)
+                length2 = length2 + 1
                 h = h * 33 + c
                 read_char()
                 c = current_char()
@@ -1159,7 +1226,10 @@ head(custom) {
 
     fn register_var(I64 hash, I64 type) {
         I64 found = find_var(hash)
-        if (found != 0) { return found }
+        if (found != 0) {
+			compiler_error(5)
+			return 0
+		}
 
         I64 count = mem_read64(0x800048)
         if (count >= 1024) { fail() return 0 }
@@ -1171,51 +1241,87 @@ head(custom) {
         return count + 1
     }
 
-    fn register_function(I64 hash, I64 position) {
-        I64 count = mem_read64(0x800038)
-        if (count >= 256) { fail() return 0 }
-        I64 entry = 0x810000 + count * 16
-        mem_write64(entry, hash)
-        mem_write64(entry + 8, position)
-        mem_write64(0x800038, count + 1)
-        return position
-    }
+    fn register_function(I64 hash, I64 position, I64 params) {
+		I64 duplicate = find_function(hash)
+		if (duplicate != 0) {
+			compiler_error(9)
+			return 0
+		}
+		I64 count = mem_read64(0x800038)
+		if (count >= 256) {
+			fail()
+			return 0
+		}
+		I64 entry = 0x810000 + count * 24
+		mem_write64(entry, hash)
+		mem_write64(entry + 8, position)
+		mem_write64(entry + 16, params)
+		mem_write64(0x800038, count + 1)
+		return position
+	}
 
     fn find_function(I64 hash) {
-        I64 count = mem_read64(0x800038)
-        I64 i = 0
-        while (i < count) {
-            I64 entry = 0x810000 + i * 16
-            if (mem_read64(entry) == hash) { return mem_read64(entry + 8) }
-            i = i + 1
-        }
-        return 0
-    }
+		I64 count = mem_read64(0x800038)
+		I64 i = 0
+		while (i < count) {
+			I64 entry = 0x810000 + i * 24
+			if (mem_read64(entry) == hash) {
+				return mem_read64(entry + 8)
+			}
+			i = i + 1
+		}
+		return 0
+	}
+	fn find_function_params(I64 hash) {
+		I64 count = mem_read64(0x800038)
+		I64 i = 0
+		while (i < count) {
+			I64 entry = 0x810000 + i * 24
+			if (mem_read64(entry) == hash) {
+				return mem_read64(entry + 16)
+			}
+			i = i + 1
+		}
+		return 0 - 1
+	}
 
-    fn register_call(I64 hash, I64 patch) {
-        I64 count = mem_read64(0x800040)
-        if (count >= 2048) { fail() return 0 }
-        I64 entry = 0x812000 + count * 16
-        mem_write64(entry, hash)
-        mem_write64(entry + 8, patch)
-        mem_write64(0x800040, count + 1)
-        return patch
-    }
+    fn register_call(I64 hash, I64 patch, I64 arguments) {
+		I64 count = mem_read64(0x800040)
+		if (count >= 2048) {
+			fail()
+			return 0
+		}
+		I64 entry = 0x812000 + count * 24
+		mem_write64(entry, hash)
+		mem_write64(entry + 8, patch)
+		mem_write64(entry + 16, arguments)
+		mem_write64(0x800040, count + 1)
+		return patch
+	}
 
     fn resolve_calls() {
-        I64 count = mem_read64(0x800040)
-        I64 i = 0
-        while (i < count) {
-            I64 entry = 0x812000 + i * 16
-            I64 hash = mem_read64(entry)
-            I64 patch = mem_read64(entry + 8)
-            I64 target = find_function(hash)
-            if (target == 0) { fail() return 0 }
-            patch_rel(patch, target)
-            i = i + 1
-        }
-        return 0
-    }
+		I64 count = mem_read64(0x800040)
+		I64 i = 0
+		while (i < count) {
+			I64 entry = 0x812000 + i * 24
+			I64 hash = mem_read64(entry)
+			I64 patch = mem_read64(entry + 8)
+			I64 arguments = mem_read64(entry + 16)
+			I64 target = find_function(hash)
+			if (target == 0) {
+				fail()
+				return 0
+			}
+			I64 expected = find_function_params(hash)
+			if (arguments != expected) {
+				compiler_error(8)
+				return 0
+			}
+			patch_rel(patch, target)
+			i = i + 1
+		}
+		return 0
+	}
 
     fn copy_string_pool(I64 source, I64 length) {
         I64 dest = mem_read64(0x800068)
@@ -1609,7 +1715,7 @@ head(custom) {
         }
 
         I64 patch = emit_call_placeholder()
-        register_call(hash, patch)
+        register_call(hash, patch, count)
         return 4
     }
 
@@ -1685,16 +1791,20 @@ head(custom) {
     }
 
     fn parse_assignment_hash(I64 hash) {
-        I64 index = find_var(hash)
-        if (index == 0) { index = register_var(hash, 4) }
+		I64 index = find_var(hash)
 
-        I64 target_type = var_type(index)
-        expect_sym(61)
-        I64 source_type = parse_expression(0)
-        emit_convert_type(source_type, target_type)
-        emit_store_var(index)
-        return target_type
-    }
+		if (index == 0) {
+			compiler_error(4)
+			return 0
+		}
+
+		I64 target_type = var_type(index)
+		expect_sym(61)
+		I64 source_type = parse_expression(0)
+		emit_convert_type(source_type, target_type)
+		emit_store_var(index)
+		return target_type
+	}
 
     fn parse_if_statement() {
         expect_sym(40)
@@ -2303,6 +2413,9 @@ head(custom) {
 
             if (done == 0) {
                 if (peek() == 0) { fail() return 0 }
+				if (failed() != 0) {
+					return 0
+				}
                 parse_statement()
             }
         }
@@ -2352,7 +2465,10 @@ head(custom) {
         expect_sym(123)
 
         I64 position = tell()
-        register_function(function_hash, position)
+        register_function(function_hash, position, params)
+		if (failed() != 0) {
+			return 0
+		}
 
         if (is_main != 0) {
             mem_write64(0x800060, position)
@@ -2369,10 +2485,15 @@ head(custom) {
         }
 
         parse_block()
-
-        if (is_main != 0) { emit_main_exit0() }
-        if (is_main == 0) { emit_epilog() }
-
+		if (failed() != 0) {
+			return 0
+		}
+        if (is_main != 0) {
+			emit_main_exit0()
+		} else {
+			emit_imm(0)
+			emit_epilog()
+		}
         mem_write64(0x800058, 0)
         return 0
     }
@@ -2404,12 +2525,35 @@ head(custom) {
                     known = 1
                 }
 
-                if (tok_is("asm-x86-64") != 0) {
-                    if (mem_read64(0x8000A0) != 0) { fail() return 0 }
-                    mem_write64(0x8000A0, 1)
-                    feature_count = feature_count + 1
-                    known = 1
-                }
+                if (tok_is("asm") != 0) {
+					expect_sym(45)
+					take()
+					if (ct() != 1) {
+						fail()
+						return 0
+					}
+					if (tok_is("x86") == 0) {
+						fail()
+						return 0
+					}
+					expect_sym(45)
+					take()
+					if (ct() != 2) {
+						fail()
+						return 0
+					}
+					if (cv() != 64) {
+						fail()
+						return 0
+					}
+					if (mem_read64(0x8000A0) != 0) {
+						fail()
+						return 0
+					}
+					mem_write64(0x8000A0, 1)
+					feature_count = feature_count + 1
+					known = 1
+				}
 
                 if (known == 0) { fail() return 0 }
             }
@@ -2623,8 +2767,14 @@ head(custom) {
         print_diagnostic_summary()
 
         if (failed() != 0) {
-            return 1
-        }
+			I64 cleanup = open(output_path, 577)
+
+			if (cleanup >= 0) {
+				close(cleanup)
+			}
+
+			return 1
+		}
 
         print_output_info(output_path, output_size)
         return 0
