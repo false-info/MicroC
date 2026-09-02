@@ -19,7 +19,6 @@ head(custom) {
     fn out_raw() {
         return mem_read64(0x800030)
     }
-
     fn out8(I64 value) {
         if (mem_read64(0x800088) != 0) { return value }
         I64 fd = out_fd()
