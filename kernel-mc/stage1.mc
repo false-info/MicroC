@@ -13,7 +13,7 @@ head(asm-x86-16) {
         push(dx)
         mov(si, stage2_dap)
         pop(dx)
-        mov(ax, 0x42)
+        mov(ah, 0x42)
         int(0x13)
         jc(disk_error)
         jmp_far(0x0000, 0x8000)
@@ -21,9 +21,10 @@ head(asm-x86-16) {
         cli
         label(hang)
         hlt
+        jmp(hang)
         label(stage2_dap)
         db(0x10)
-        db(0x13)
+        db(0x00)
         dw(16)
         dw(0x8000)
         dw(0)
