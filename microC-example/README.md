@@ -118,7 +118,29 @@ Perform arithmetic using variables.
 ### Code
 
 ```mc
+head(custom) {
+    fn add(I64 a, I64 b) {
+        return a + b
+    }
 
+    fn sub(I64 a, I64 b) {
+        return a - b
+    }
+
+    fn mult(I64 a, I64 b) {
+        return a * b
+    }
+
+    fn main() {
+        I64 add_result = add(10, 5)
+        I64 sub_result = sub(10, 5)
+        I64 mult_result = mult(10, 5)
+        pin("a + b is %I64\n", add_result)
+        pin("a - b is %I64\n", sub_result)
+        pin("a * b is %I64\n", mult_result)
+    }
+
+}
 ```
 
 </details>
@@ -141,6 +163,20 @@ Compare numeric values.
 ### Code
 
 ```mc
+head(custom) {
+    fn main() {
+        I64 x = 3
+        if (x >= 4) {
+            pin("x is bigger then 4\n")
+        }
+        if (x <= 2) {
+            pin("x is less then 2\n")
+        }
+        if (x == 3) {
+            pin("x is 3\n")
+        }
+    }
+}
 ```
 
 </details>
@@ -162,6 +198,14 @@ Execute code only when a condition is true.
 ### Code
 
 ```mc
+head(custom) {
+    fn main() {
+        I64 temp = 30
+        if(temp >= 25) {
+            pin("very warm\n")
+        }
+    }
+}
 ```
 
 </details>
@@ -183,6 +227,17 @@ Choose between two different paths.
 ### Code
 
 ```mc
+head(custom) {
+    fn main() {
+        I64 x = 2
+        if(x == 1) {
+            pin("x is 1\n")
+        }
+        else {
+            pin("x is something else\n")
+        }
+    }
+}
 ```
 
 </details>
@@ -205,6 +260,19 @@ Create a counter that changes inside a loop.
 ### Code
 
 ```mc
+head(custom) {
+    fn main() {
+        I64 x = 0
+        pin("counting up from %I64\n", x)
+        while (x != 10) {
+            pin("x is %I64\n", x)
+            x = x + 1
+            if(x == 10) {
+                pin("x stopped at %I64\n", x)
+            }
+        }
+    }
+}
 ```
 
 </details>
@@ -226,6 +294,19 @@ Count downward instead of upward.
 ### Code
 
 ```mc
+head(custom) {
+    fn main() {
+        I64 x = 10
+        pin("counting down from %I64\n", x)
+        while(x != 0) {
+            pin("x is %I64\n", x)
+            x = x - 1
+            if(x == 0) {
+                pin("stopped at %I64\n", x)
+            }
+        }
+    }
+}
 ```
 
 </details>
