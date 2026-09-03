@@ -64,6 +64,11 @@ Write the smallest useful MicroC program and print text.
 ### Code
 
 ```mc
+head(custom) {
+    fn main() {
+        pin("hello\n")
+    }
+}
 ```
 
 </details>
@@ -85,6 +90,12 @@ Create an integer variable, assign a value to it and use it.
 ### Code
 
 ```mc
+head(custom) {
+    fn main() {
+        I64 x = 5
+        pin("x is %I64", x)
+    }
+}
 ```
 
 </details>
@@ -107,6 +118,7 @@ Perform arithmetic using variables.
 ### Code
 
 ```mc
+
 ```
 
 </details>
