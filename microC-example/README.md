@@ -328,6 +328,20 @@ Determine whether numbers follow an even-number pattern.
 ### Code
 
 ```mc
+head(custom) {
+    fn main() {
+        I64 x = 1
+        while(x <= 10) {
+            pin("%I64 is ", x)
+            if((x % 2) == 0) {
+                pin("even\n")
+            } else {
+                pin("odd\n")
+            }
+            x = x + 1
+        }
+    }
+}
 ```
 
 </details>
@@ -350,6 +364,30 @@ Use several conditions while iterating through numbers.
 ### Code
 
 ```mc
+head(custom) {
+    fn main() {
+        I64 x = 1
+        while(x <= 15) {
+            if((x % 15) == 0) {
+                pin("both\n")
+            }
+            else {
+                if((x % 3) == 0) {
+                    pin("three\n")
+                }
+                else {
+                    if((x % 5) == 0) {
+                        pin("five\n")
+                    }
+                    else {
+                        pin("%I64\n", x)
+                    }
+                }
+            }
+            x = x + 1
+        }
+    }
+}
 ```
 
 </details>
