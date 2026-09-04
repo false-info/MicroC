@@ -1,190 +1,132 @@
-# MicroC — Professional GitHub HTML Blocks
-
-> GitHub-safe diagrams using only Markdown + HTML that GitHub renders directly.
-> No CSS, no Mermaid, no external SVG files.
-
----
-
-## Compiler pipeline
-
-<table>
-  <tr>
-    <td align="center"><b>source.mc</b><br><sub>MicroC source</sub></td>
-    <td align="center">→</td>
-    <td align="center"><b>Lexer</b><br><sub>characters → tokens</sub></td>
-    <td align="center">→</td>
-    <td align="center"><b>Parser</b><br><sub>tokens → syntax</sub></td>
-    <td align="center">→</td>
-    <td align="center"><b>Codegen</b><br><sub>syntax → x86-64</sub></td>
-    <td align="center">→</td>
-    <td align="center"><b>Native output</b><br><sub>ELF64 / raw .bin</sub></td>
-  </tr>
-</table>
+# MicroC
 
 <p align="center">
-  <sub>MicroC keeps the distance between source code and machine code intentionally short.</sub>
+  <b>Small systems language. Self-hosted compiler. Direct x86 output.</b>
+</p>
+
+<p align="center">
+  MicroC keeps the distance between source code and the processor deliberately short.
+  The compiler is written in MicroC and emits native machine code without using LLVM.
 </p>
 
 ---
 
-## Source structure
+## Architecture targets
 
-<table>
-  <tr>
-    <td colspan="5" align="center"><b>program</b></td>
-  </tr>
-  <tr>
-    <td colspan="5" align="center">↓</td>
-  </tr>
-  <tr>
-    <td colspan="5" align="center"><b>head(...)</b></td>
-  </tr>
-  <tr>
-    <td align="center">↙</td>
-    <td align="center">↓</td>
-    <td align="center">↓</td>
-    <td align="center">↓</td>
-    <td align="center">↘</td>
-  </tr>
-  <tr>
-    <td align="center"><b>features</b><br><sub>custom<br>asm-x86-64</sub></td>
-    <td align="center"><b>functions</b><br><sub>fn</sub></td>
-    <td align="center"><b>statements</b><br><sub>if · while · return</sub></td>
-    <td align="center"><b>output</b><br><sub>pin</sub></td>
-    <td align="center"><b>inline asm</b><br><sub>(asmb) … (asme)</sub></td>
-  </tr>
-</table>
-
----
-
-## Function syntax tree
-
-<table>
-  <tr>
-    <td colspan="7" align="center"><b>function</b></td>
-  </tr>
-  <tr>
-    <td align="center">↓</td>
-    <td align="center">↓</td>
-    <td align="center">↓</td>
-    <td align="center">↓</td>
-    <td align="center">↓</td>
-    <td align="center">↓</td>
-    <td align="center">↓</td>
-  </tr>
-  <tr>
-    <td align="center"><code>fn</code></td>
-    <td align="center"><b>identifier</b><br><sub>add</sub></td>
-    <td align="center"><code>(</code></td>
-    <td align="center"><b>parameters</b><br><sub>I64 a, I64 b</sub></td>
-    <td align="center"><code>)</code></td>
-    <td align="center"><b>block</b></td>
-    <td align="center"><b>return</b></td>
-  </tr>
-</table>
-
-Example:
+MicroC keeps architecture selection inside `head(...)`.
 
 ```mc
-fn add(I64 a, I64 b) {
-    return a + b
+head(asm-x86-16 custom) {
+    ...
 }
 ```
 
----
+```mc
+head(asm-x86-32 custom) {
+    ...
+}
+```
 
-## Statement syntax tree
+```mc
+head(asm-x86-64 custom) {
+    ...
+}
+```
+
+The normal language layer is enabled with `custom`.  
+The architecture feature selects the integrated x86 mode available to the source file.
 
 <table>
-  <tr>
-    <td colspan="6" align="center"><b>statement</b></td>
-  </tr>
-  <tr>
-    <td align="center">↓</td>
-    <td align="center">↓</td>
-    <td align="center">↓</td>
-    <td align="center">↓</td>
-    <td align="center">↓</td>
-    <td align="center">↓</td>
-  </tr>
-  <tr>
-    <td align="center"><b>declaration</b><br><sub>I64 x = 5</sub></td>
-    <td align="center"><b>assignment</b><br><sub>x = x + 1</sub></td>
-    <td align="center"><b>call</b><br><sub>add(1, 2)</sub></td>
-    <td align="center"><b>control flow</b><br><sub>if / while</sub></td>
-    <td align="center"><b>return</b></td>
-    <td align="center"><b>pin</b></td>
-  </tr>
+<tr>
+<td>
+
+<table>
+<tr><td align="center"><b>x86-16</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>real-mode / small bare-metal work</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td align="center">→</td>
+<td>
+
+<table>
+<tr><td align="center"><b>x86-32</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>32-bit protected-mode target</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td align="center">→</td>
+<td>
+
+<table>
+<tr><td align="center"><b>x86-64</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>native 64-bit target</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+</tr>
 </table>
 
 ---
 
-## Lexer example
+## Compiler path
+
+The normal compile path is intentionally compact. Source is scanned, parsed, and lowered directly into machine code.
 
 <table>
-  <tr>
-    <th colspan="6">Source characters</th>
-  </tr>
-  <tr>
-    <td align="center"><code>1</code></td>
-    <td align="center"><code>2</code></td>
-    <td align="center"><code> </code></td>
-    <td align="center"><code>+</code></td>
-    <td align="center"><code> </code></td>
-    <td align="center"><code>5</code></td>
-  </tr>
-  <tr>
-    <td colspan="6" align="center">↓ lexical analysis ↓</td>
-  </tr>
-  <tr>
-    <td colspan="2" align="center"><b>NUMBER</b><br><code>12</code></td>
-    <td align="center"><sub>skip</sub></td>
-    <td align="center"><b>PLUS</b></td>
-    <td align="center"><sub>skip</sub></td>
-    <td align="center"><b>NUMBER</b><br><code>5</code></td>
-  </tr>
+<tr>
+<td>
+
+<table>
+<tr><td align="center"><b>source.mc</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>MicroC source</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
 </table>
+
+</td>
+<td align="center">→</td>
+<td>
+
+<table>
+<tr><td align="center"><b>LEXER</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>characters → tokens</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td align="center">→</td>
+<td>
+
+<table>
+<tr><td align="center"><b>PARSER</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>tokens → structure</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td align="center">→</td>
+<td>
+
+<table>
+<tr><td align="center"><b>EMITTER</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>structure → x86</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+</tr>
+</table>
+
+<p align="center">
+  <sub>No LLVM backend · no generated assembly file in the normal path · direct native output</sub>
+</p>
 
 ---
 
-## Token categories
-
-<table>
-  <tr>
-    <th>Category</th>
-    <th>Examples</th>
-    <th>Meaning</th>
-  </tr>
-  <tr>
-    <td><b>Identifiers</b></td>
-    <td><code>main</code> <code>value</code> <code>add</code></td>
-    <td>Names of functions and variables</td>
-  </tr>
-  <tr>
-    <td><b>Literals</b></td>
-    <td><code>42</code> <code>0x400000</code> <code>"hello"</code></td>
-    <td>Values written directly in source</td>
-  </tr>
-  <tr>
-    <td><b>Keywords</b></td>
-    <td><code>fn</code> <code>if</code> <code>while</code> <code>return</code></td>
-    <td>Reserved language words</td>
-  </tr>
-  <tr>
-    <td><b>Operators</b></td>
-    <td><code>+</code> <code>-</code> <code>*</code> <code>==</code></td>
-    <td>Expression operations</td>
-  </tr>
-  <tr>
-    <td><b>Punctuation</b></td>
-    <td><code>( ) { } ,</code></td>
-    <td>Syntax structure</td>
-  </tr>
-</table>
-
----
-
-## Expression syntax tree
+## A small syntax tree
 
 For:
 
@@ -192,344 +134,565 @@ For:
 I64 result = 2 + 3 * 4
 ```
 
+the parser sees structure, not just a line of text.
+
 <table>
-  <tr>
-    <td></td>
-    <td colspan="3" align="center"><b>expression</b><br><code>+</code></td>
-    <td></td>
-  </tr>
-  <tr>
-    <td align="center">↙</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td align="center">↘</td>
-  </tr>
-  <tr>
-    <td align="center"><b>number</b><br><code>2</code></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td align="center"><b>term</b><br><code>*</code></td>
-  </tr>
-  <tr>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td align="center">↙</td>
-    <td align="center">↘</td>
-  </tr>
-  <tr>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td align="center"><b>number</b><br><code>3</code></td>
-    <td align="center"><b>number</b><br><code>4</code></td>
-  </tr>
+<tr>
+<td></td>
+<td></td>
+<td>
+
+<table>
+<tr><td align="center"><b>+</b></td><td rowspan="2">▓</td></tr>
+<tr><td>▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td></td>
+<td></td>
+</tr>
+
+<tr>
+<td></td>
+<td align="center">╱</td>
+<td></td>
+<td align="center">╲</td>
+<td></td>
+</tr>
+
+<tr>
+<td>
+
+<table>
+<tr><td align="center"><b>2</b></td><td rowspan="2">▓</td></tr>
+<tr><td>▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td></td>
+<td></td>
+<td></td>
+<td>
+
+<table>
+<tr><td align="center"><b>*</b></td><td rowspan="2">▓</td></tr>
+<tr><td>▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td align="center">╱</td>
+<td align="center">╲</td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>
+
+<table>
+<tr><td align="center"><b>3</b></td><td rowspan="2">▓</td></tr>
+<tr><td>▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td>
+
+<table>
+<tr><td align="center"><b>4</b></td><td rowspan="2">▓</td></tr>
+<tr><td>▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+</tr>
 </table>
 
 <p align="center"><code>2 + (3 * 4)</code></p>
 
----
-
-## Expression grammar
-
-<table>
-  <tr>
-    <td align="center"><b>expression</b></td>
-    <td align="center">→</td>
-    <td align="center"><b>term</b></td>
-    <td align="center"><code>{ (+ | -) term }</code></td>
-  </tr>
-  <tr>
-    <td align="center"><b>term</b></td>
-    <td align="center">→</td>
-    <td align="center"><b>factor</b></td>
-    <td align="center"><code>{ (* | / | %) factor }</code></td>
-  </tr>
-  <tr>
-    <td align="center"><b>factor</b></td>
-    <td align="center">→</td>
-    <td align="center"><b>primary</b></td>
-    <td align="center"><code>integer | identifier | call | ( expression )</code></td>
-  </tr>
-</table>
+That precedence is part of the parser. Multiplication binds before addition unless parentheses change the structure.
 
 ---
 
-## Operator precedence
+## Program structure
+
+A MicroC source file has one `head(...)` block. From there the parser recognizes functions, statements, expressions, and optional integrated assembly.
 
 <table>
-  <tr>
-    <th>Priority</th>
-    <th>Operators</th>
-    <th>Group</th>
-  </tr>
-  <tr>
-    <td align="center">7</td>
-    <td align="center"><code>* / %</code></td>
-    <td>Multiplicative</td>
-  </tr>
-  <tr>
-    <td align="center">6</td>
-    <td align="center"><code>+ -</code></td>
-    <td>Additive</td>
-  </tr>
-  <tr>
-    <td align="center">5</td>
-    <td align="center"><code>&lt;&lt; &gt;&gt;</code></td>
-    <td>Shift</td>
-  </tr>
-  <tr>
-    <td align="center">4</td>
-    <td align="center"><code>&amp;</code></td>
-    <td>Bitwise AND</td>
-  </tr>
-  <tr>
-    <td align="center">3</td>
-    <td align="center"><code>^</code></td>
-    <td>Bitwise XOR</td>
-  </tr>
-  <tr>
-    <td align="center">2</td>
-    <td align="center"><code>|</code></td>
-    <td>Bitwise OR</td>
-  </tr>
-  <tr>
-    <td align="center">1</td>
-    <td align="center"><code>== != &lt; &gt; &lt;= &gt;=</code></td>
-    <td>Comparison</td>
-  </tr>
+<tr>
+<td></td>
+<td colspan="5">
+
+<table>
+<tr><td align="center"><b>program</b></td><td rowspan="2">▓</td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
 </table>
 
----
+</td>
+</tr>
 
-## Parser decision flow
+<tr>
+<td></td>
+<td colspan="5" align="center">↓</td>
+</tr>
+
+<tr>
+<td></td>
+<td colspan="5">
 
 <table>
-  <tr>
-    <td align="center"><b>next token</b></td>
-    <td align="center">→</td>
-    <td align="center"><b>what starts here?</b></td>
-  </tr>
+<tr><td align="center"><b>head(...)</b></td><td rowspan="2">▓</td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
 </table>
 
+</td>
+</tr>
+
+<tr>
+<td align="center">↙</td>
+<td align="center">↓</td>
+<td align="center">↓</td>
+<td align="center">↓</td>
+<td align="center">↘</td>
+</tr>
+
+<tr>
+<td>
+
 <table>
-  <tr>
-    <td align="center"><code>I64 / U64 / ...</code><br>↓<br><b>declaration</b></td>
-    <td align="center"><code>if</code><br>↓<br><b>if statement</b></td>
-    <td align="center"><code>while</code><br>↓<br><b>while statement</b></td>
-    <td align="center"><code>return</code><br>↓<br><b>return statement</b></td>
-    <td align="center"><code>identifier</code><br>↓<br><b>call / assignment</b></td>
-    <td align="center"><code>pin</code><br>↓<br><b>output statement</b></td>
-  </tr>
+<tr><td align="center"><b>architecture</b></td><td rowspan="3">▓</td></tr>
+<tr><td><sub>asm-x86-16<br>asm-x86-32<br>asm-x86-64</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
 </table>
 
----
-
-## Single-pass compiler flow
+</td>
+<td>
 
 <table>
-  <tr>
-    <td align="center"><b>1</b><br>Read token</td>
-    <td align="center">→</td>
-    <td align="center"><b>2</b><br>Recognize construct</td>
-    <td align="center">→</td>
-    <td align="center"><b>3</b><br>Emit x86-64</td>
-    <td align="center">→</td>
-    <td align="center"><b>4</b><br>Record patch</td>
-  </tr>
-  <tr>
-    <td align="center">↑</td>
-    <td></td>
-    <td colspan="3" align="center"><b>more source?</b></td>
-    <td></td>
-    <td align="center">↓</td>
-  </tr>
-  <tr>
-    <td colspan="5" align="center">← yes</td>
-    <td align="center">no →</td>
-    <td align="center"><b>finish output</b></td>
-  </tr>
+<tr><td align="center"><b>functions</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>fn</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td>
+
+<table>
+<tr><td align="center"><b>control</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>if · while</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td>
+
+<table>
+<tr><td align="center"><b>data</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>I8 … U64 · F64 · Bool</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td>
+
+<table>
+<tr><td align="center"><b>asm</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>(asmb) … (asme)</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+</tr>
 </table>
 
 ---
 
-## Function call path
+## Function structure
+
+```mc
+fn add(I64 a, I64 b) {
+    return a + b
+}
+```
 
 <table>
-  <tr>
-    <td align="center"><b>call expression</b><br><code>add(10, 20)</code></td>
-    <td align="center">→</td>
-    <td align="center"><b>parse arguments</b><br><code>10</code> · <code>20</code></td>
-    <td align="center">→</td>
-    <td align="center"><b>prepare registers</b></td>
-    <td align="center">→</td>
-    <td align="center"><b>CALL</b></td>
-    <td align="center">→</td>
-    <td align="center"><b>return value</b><br><sub>RAX</sub></td>
-  </tr>
+<tr>
+<td>
+
+<table>
+<tr><td align="center"><b>fn</b></td><td rowspan="2">▓</td></tr>
+<tr><td>▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td align="center">→</td>
+<td>
+
+<table>
+<tr><td align="center"><b>add</b></td><td rowspan="2">▓</td></tr>
+<tr><td>▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td align="center">→</td>
+<td>
+
+<table>
+<tr><td align="center"><b>parameters</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>I64 a · I64 b</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td align="center">→</td>
+<td>
+
+<table>
+<tr><td align="center"><b>block</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>return a + b</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+</tr>
 </table>
 
 ---
 
-## Control flow: if
+## Single-pass style
+
+MicroC does not need to build a huge full-program tree before useful code can be emitted. Parsing and code generation stay close together.
 
 <table>
-  <tr>
-    <td align="center"><b>condition</b></td>
-    <td align="center">→</td>
-    <td align="center"><b>compare</b></td>
-    <td align="center">→</td>
-    <td align="center"><b>conditional jump</b></td>
-  </tr>
-  <tr>
-    <td colspan="3"></td>
-    <td align="center">↙</td>
-    <td align="center">↘</td>
-  </tr>
-  <tr>
-    <td colspan="3"></td>
-    <td align="center"><b>true</b><br>execute block</td>
-    <td align="center"><b>false</b><br>skip block</td>
-  </tr>
+<tr>
+<td>
+
+<table>
+<tr><td align="center"><b>1 · token</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>read next token</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td align="center">→</td>
+<td>
+
+<table>
+<tr><td align="center"><b>2 · syntax</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>recognize construct</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td align="center">→</td>
+<td>
+
+<table>
+<tr><td align="center"><b>3 · emit</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>write machine code</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td align="center">→</td>
+<td>
+
+<table>
+<tr><td align="center"><b>4 · patch</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>resolve later if needed</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+</tr>
 </table>
 
 ---
 
-## Control flow: while
+## MicroC next to other languages
+
+This is a design comparison, not a benchmark chart. Performance depends on the program and compiler quality, so the table avoids fake percentage claims.
 
 <table>
-  <tr>
-    <td align="center"><b>loop start</b></td>
-    <td align="center">→</td>
-    <td align="center"><b>condition</b></td>
-    <td align="center">→</td>
-    <td align="center"><b>body</b></td>
-    <td align="center">→</td>
-    <td align="center"><b>jump back</b></td>
-  </tr>
-  <tr>
-    <td align="center">↑</td>
-    <td colspan="5" align="center">──────────────────── true ────────────────────</td>
-    <td align="center">↵</td>
-  </tr>
-  <tr>
-    <td colspan="2"></td>
-    <td align="center">↓ false</td>
-    <td colspan="4"></td>
-  </tr>
-  <tr>
-    <td colspan="2"></td>
-    <td align="center"><b>continue</b></td>
-    <td colspan="4"></td>
-  </tr>
+<tr>
+<th>Language</th>
+<th>Execution / compilation model</th>
+<th>Machine control</th>
+<th>Compiler complexity</th>
+<th>Portability</th>
+<th>Typical strength</th>
+</tr>
+
+<tr>
+<td><b>x86-64 Assembly</b></td>
+<td>Written directly as machine-level instructions</td>
+<td align="center">Maximum</td>
+<td align="center">None as a language compiler</td>
+<td align="center">Low</td>
+<td>Exact instruction-level control</td>
+</tr>
+
+<tr>
+<td><b>C</b></td>
+<td>Native compiler, usually through a mature optimizer and backend</td>
+<td align="center">Very high</td>
+<td align="center">High</td>
+<td align="center">High</td>
+<td>Portable low-level systems software</td>
+</tr>
+
+<tr>
+<td><b>MicroC</b></td>
+<td>Direct native x86 emission from a small self-hosted compiler</td>
+<td align="center">Very high</td>
+<td align="center">Small by design</td>
+<td align="center">x86-focused</td>
+<td>Understanding the whole source-to-machine path</td>
+</tr>
+
+<tr>
+<td><b>HolyC</b></td>
+<td>Native compiled language integrated tightly with TempleOS</td>
+<td align="center">High</td>
+<td align="center">Compact / integrated</td>
+<td align="center">Low</td>
+<td>Fast interactive systems programming inside TempleOS</td>
+</tr>
+
+<tr>
+<td><b>Python</b></td>
+<td>Normally interpreted through CPython bytecode and runtime machinery</td>
+<td align="center">Low</td>
+<td align="center">Hidden from user</td>
+<td align="center">Very high</td>
+<td>Fast development and high-level scripting</td>
+</tr>
 </table>
 
----
-
-## Output formats
+### Rough mental model
 
 <table>
-  <tr>
-    <td colspan="3" align="center"><b>x86-64 emitted bytes</b></td>
-  </tr>
-  <tr>
-    <td align="center">↙</td>
-    <td></td>
-    <td align="center">↘</td>
-  </tr>
-  <tr>
-    <td align="center"><b>ELF64</b><br><sub>Linux executable</sub></td>
-    <td></td>
-    <td align="center"><b>raw .bin</b><br><sub>boot / bare metal</sub></td>
-  </tr>
-</table>
-
----
-
-## Inline assembly path
+<tr>
+<td>
 
 <table>
-  <tr>
-    <td align="center"><b>(asmb)</b></td>
-    <td align="center">→</td>
-    <td align="center"><b>asm parser</b></td>
-    <td align="center">→</td>
-    <td align="center"><b>instruction encoder</b></td>
-    <td align="center">→</td>
-    <td align="center"><b>x86-64 bytes</b></td>
-    <td align="center">→</td>
-    <td align="center"><b>(asme)</b></td>
-  </tr>
+<tr><td align="center"><b>Assembly</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>you choose the instructions</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
 </table>
+
+</td>
+<td align="center">← more direct</td>
+<td>
+
+<table>
+<tr><td align="center"><b>MicroC</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>small compiler → native x86</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td align="center">↔</td>
+<td>
+
+<table>
+<tr><td align="center"><b>C</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>native + mature optimization</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td align="center">→ more abstraction</td>
+<td>
+
+<table>
+<tr><td align="center"><b>Python</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>runtime + bytecode</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+</tr>
+</table>
+
+HolyC sits in an unusual place: it is native and low-level, but it was designed as part of a single integrated operating environment rather than as a portable general-purpose toolchain.
 
 ---
 
 ## Self-hosting
 
-<table>
-  <tr>
-    <td align="center"><b>mcc</b><br><sub>current compiler</sub></td>
-    <td align="center">compiles →</td>
-    <td align="center"><b>compiler.mc</b></td>
-    <td align="center">→</td>
-    <td align="center"><b>mcc-new</b></td>
-  </tr>
-</table>
+The compiler source is `compiler.mc`.
+
+```bash
+./mcc compiler.mc -o mcc-new
+chmod +x mcc-new
+./mcc-new compiler.mc -o mcc-second
+```
 
 <table>
-  <tr>
-    <td align="center"><b>mcc-new</b></td>
-    <td align="center">compiles →</td>
-    <td align="center"><b>compiler.mc</b></td>
-    <td align="center">→</td>
-    <td align="center"><b>mcc-second</b></td>
-  </tr>
+<tr>
+<td>
+
+<table>
+<tr><td align="center"><b>mcc</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>current compiler</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓</td></tr>
 </table>
 
-<p align="center">
-  <sub>If the generated compiler can compile the compiler source again, MicroC is self-hosting.</sub>
-</p>
+</td>
+<td align="center">compiles →</td>
+<td>
+
+<table>
+<tr><td align="center"><b>compiler.mc</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>compiler source</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td align="center">→</td>
+<td>
+
+<table>
+<tr><td align="center"><b>mcc-new</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>compiler made by MicroC</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+</tr>
+</table>
+
+<p align="center">↓</p>
+
+<table>
+<tr>
+<td>
+
+<table>
+<tr><td align="center"><b>mcc-new</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>generated compiler</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td align="center">compiles →</td>
+<td>
+
+<table>
+<tr><td align="center"><b>compiler.mc</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>same source</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td align="center">→</td>
+<td>
+
+<table>
+<tr><td align="center"><b>mcc-second</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>second generation</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+</tr>
+</table>
+
+If the compiler generated by MicroC can compile `compiler.mc` again, the compiler is self-hosting.
 
 ---
 
-## Built-in subsystems
+## Inline x86
+
+```mc
+head(asm-x86-16) {
+    (asmb) {
+        ...
+    } (asme)
+}
+```
+
+```mc
+head(asm-x86-32) {
+    (asmb) {
+        ...
+    } (asme)
+}
+```
+
+```mc
+head(asm-x86-64) {
+    (asmb) {
+        cli
+        hlt
+    } (asme)
+}
+```
+
+The integrated assembly path is intended to keep low-level code inside the same source format rather than handing it to a separate assembler.
+
+---
+
+## Output
 
 <table>
-  <tr>
-    <td colspan="4" align="center"><b>MicroC built-ins</b></td>
-  </tr>
-  <tr>
-    <td align="center">↓</td>
-    <td align="center">↓</td>
-    <td align="center">↓</td>
-    <td align="center">↓</td>
-  </tr>
-  <tr>
-    <td align="center"><b>Files</b><br><sub>open<br>close<br>file_read8<br>file_write8</sub></td>
-    <td align="center"><b>Memory</b><br><sub>mem_read8<br>mem_write8<br>mem_read64<br>mem_write64</sub></td>
-    <td align="center"><b>Strings</b><br><sub>strlen<br>strcmp</sub></td>
-    <td align="center"><b>Process</b><br><sub>argc<br>argv</sub></td>
-  </tr>
+<tr>
+<td></td>
+<td>
+
+<table>
+<tr><td align="center"><b>x86 machine code</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>emitted by MicroC</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td></td>
+</tr>
+
+<tr>
+<td align="center">↙</td>
+<td></td>
+<td align="center">↘</td>
+</tr>
+
+<tr>
+<td>
+
+<table>
+<tr><td align="center"><b>ELF64</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>Linux executable</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+<td></td>
+<td>
+
+<table>
+<tr><td align="center"><b>raw .bin</b></td><td rowspan="3">▓</td></tr>
+<tr><td align="center"><sub>bare-metal output</sub></td></tr>
+<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+</table>
+
+</td>
+</tr>
 </table>
 
 ---
 
-## Compact header diagram
+## Project direction
 
-<p align="center">
-  <kbd>source.mc</kbd>
-  &nbsp;→&nbsp;
-  <kbd>LEXER</kbd>
-  &nbsp;→&nbsp;
-  <kbd>PARSER</kbd>
-  &nbsp;→&nbsp;
-  <kbd>X86-64 EMITTER</kbd>
-  &nbsp;→&nbsp;
-  <kbd>ELF64 / .BIN</kbd>
-</p>
+MicroC is not trying to win by collecting the largest feature list.
 
-<p align="center">
-  <sub>small language · direct native code · self-hosted compiler</sub>
-</p>
+The project is about keeping the language, compiler, and generated code close enough together that the complete system can still be understood.
+
+That makes the design question fairly simple:
+
+> How much systems-programming power can fit inside a compiler that is still small enough to take apart and understand?
