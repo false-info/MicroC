@@ -1,146 +1,142 @@
 # Building a Small Compiler in MicroC
 
-This guide is for learning compiler construction by writing a tiny compiler in MicroC.
+This guide is meant to be coded along with.
 
-It is **not** a replacement for `compiler.mc`, and it deliberately does not begin by copying the real compiler.
+The goal is not to copy `compiler.mc`. The goal is to build a much smaller compiler first, understand every part, and only then compare it with the real MicroC compiler.
 
-The goal is to understand the machine one gear at a time.
-
----
-
-# Target
-
-The first compiler understands only expressions like:
+The first language will understand:
 
 ```text
 12 + 5
 ```
 
-and eventually emits x86-64 code equivalent to:
+Then it grows into:
 
-```asm
-mov rax, 12
-add rax, 5
+```text
+2 + 3 * 4
+(2 + 3) * 4
 ```
 
-That tiny language is enough to learn the complete compiler path.
+and later:
+
+```text
+I64 x = 10
+x = x + 1
+```
+
+---
+
+# 0. The pipeline
 
 <table>
 <tr>
 <td align="center"><b>source</b></td>
 <td align="center">→</td>
+<td align="center"><b>reader</b></td>
+<td align="center">→</td>
 <td align="center"><b>lexer</b></td>
 <td align="center">→</td>
 <td align="center"><b>parser</b></td>
 <td align="center">→</td>
-<td align="center"><b>emitter</b></td>
+<td align="center"><b>codegen</b></td>
 <td align="center">→</td>
-<td align="center"><b>x86-64</b></td>
+<td align="center"><b>x86-64 bytes</b></td>
 </tr>
 </table>
 
+Start small enough that you can explain every arrow.
+
 ---
 
-# Stage 0 — Know the input
+# 1. Read source bytes
 
-Start with a fixed source string or file containing:
+A compiler begins by reading source one byte at a time.
+
+A first test program can simply print every byte in a file:
+
+```mc
+head(custom) {
+    fn main() {
+        I64 fd = open("test.mc", 0)
+        I64 size = file_size(fd)
+        I64 i = 0
+
+        file_seek(fd, 0)
+
+        while (i < size) {
+            I64 ch = file_read8(fd)
+            pin("%c", ch)
+            i = i + 1
+        }
+
+        close(fd)
+    }
+}
+```
+
+If `test.mc` contains:
 
 ```text
 12 + 5
 ```
 
-Do not add variables, functions, `if`, strings, or types yet.
-
-Your compiler has only four token kinds:
+your program should print:
 
 ```text
-NUMBER
-PLUS
-EOF
-INVALID
+12 + 5
 ```
+
+That sounds trivial, but this is the first compiler component: **source input**.
 
 ---
 
-# Stage 1 — Read one character
+# 2. Learn ASCII
 
-The lexer needs one current character.
+The lexer sees bytes, not abstract characters.
 
-Conceptually:
-
-```text
-source:  1 2   +   5
-         ^
-       current
-```
-
-After `advance()`:
-
-```text
-source:  1 2   +   5
-           ^
-         current
-```
-
-Your first helper should have one job:
-
-```text
-advance:
-    move input position forward
-    read the next byte
-    store it as current
-```
-
-### Checkpoint
-
-Print each byte of the source one at a time.
-
-Do not continue until you understand exactly when the position changes.
-
----
-
-# Stage 2 — Recognize digits
-
-ASCII digits occupy:
+Important values:
 
 ```text
 '0' = 48
+'1' = 49
 ...
 '9' = 57
+
+'+' = 43
+'-' = 45
+'*' = 42
+'/' = 47
+
+' ' = 32
+'\n' = 10
 ```
 
-A helper can therefore answer:
-
-```text
-is_digit(c)
-```
-
-with:
-
-```text
-1 if c is between 48 and 57
-0 otherwise
-```
-
-MicroC shape:
+A digit checker:
 
 ```mc
-fn is_digit(I64 c) {
-    if (c >= 48) {
-        if (c <= 57) {
-            return 1
+head(custom) {
+    fn is_digit(I64 c) {
+        if (c >= 48) {
+            if (c <= 57) {
+                return 1
+            }
         }
+
+        return 0
     }
 
-    return 0
+    fn main() {
+        pin("%I64\n", is_digit(55))
+        pin("%I64\n", is_digit(43))
+    }
 }
 ```
 
-### Test
+Expected:
 
 ```text
-is_digit(55) → 1
-is_digit(43) → 0
+1
+0
 ```
 
 because:
@@ -152,90 +148,231 @@ because:
 
 ---
 
-# Stage 3 — Read an integer
+# 3. Convert one ASCII digit to a number
 
-To convert:
+ASCII digit → numeric value:
 
-```text
-"123"
+```mc
+fn digit_value(I64 c) {
+    return c - 48
+}
 ```
 
-into:
+Examples:
 
 ```text
-123
+'0' = 48 → 0
+'5' = 53 → 5
+'9' = 57 → 9
 ```
 
-use:
+Test:
+
+```mc
+head(custom) {
+    fn digit_value(I64 c) {
+        return c - 48
+    }
+
+    fn main() {
+        pin("%I64\n", digit_value(53))
+    }
+}
+```
+
+Expected:
+
+```text
+5
+```
+
+---
+
+# 4. Build a number from many digits
+
+The rule:
 
 ```text
 number = number * 10 + digit
 ```
 
-The digit comes from ASCII:
+MicroC:
 
-```text
-digit = current - 48
+```mc
+head(custom) {
+    fn push_digit(I64 number, I64 ascii_digit) {
+        return number * 10 + (ascii_digit - 48)
+    }
+
+    fn main() {
+        I64 n = 0
+
+        n = push_digit(n, 49)
+        n = push_digit(n, 50)
+        n = push_digit(n, 51)
+
+        pin("%I64\n", n)
+    }
+}
 ```
 
-Walkthrough:
+Expected:
 
 ```text
-number = 0
-
-'1' → 0 * 10 + 1   = 1
-'2' → 1 * 10 + 2   = 12
-'3' → 12 * 10 + 3  = 123
+123
 ```
 
-Your `read_number()` algorithm:
-
-```text
-number = 0
-
-while current is a digit:
-    number = number * 10 + (current - 48)
-    advance()
-
-return number
-```
-
-Important:
-
-> `read_number()` stops **before** the first non-digit.
-
-For:
-
-```text
-123+
-```
-
-it should return `123` while leaving `current` on `+`.
+This is the heart of `read_number()`.
 
 ---
 
-# Stage 4 — Produce tokens
+# 5. A tiny lexer without hidden state
 
-Now build `next_token()`.
+Before writing a full lexer, practice on known bytes.
 
-Pseudo-code:
+```mc
+head(custom) {
+    fn token_kind(I64 c) {
+        if (c >= 48) {
+            if (c <= 57) {
+                return 1
+            }
+        }
+
+        if (c == 43) {
+            return 2
+        }
+
+        if (c == 32) {
+            return 3
+        }
+
+        return 0
+    }
+
+    fn main() {
+        pin("%I64\n", token_kind(49))
+        pin("%I64\n", token_kind(43))
+        pin("%I64\n", token_kind(32))
+    }
+}
+```
+
+Use a simple token numbering scheme while learning:
 
 ```text
-skip spaces
+0 = INVALID
+1 = NUMBER
+2 = PLUS
+3 = SPACE
+4 = EOF
+```
 
-if end of input:
-    token = EOF
+Do not worry about elegant enums yet.
 
-else if current is digit:
-    token_value = read_number()
-    token = NUMBER
+---
 
-else if current is '+':
-    advance()
-    token = PLUS
+# 6. Skip whitespace
 
-else:
-    token = INVALID
+A helper:
+
+```mc
+fn is_space(I64 c) {
+    if (c == 32) {
+        return 1
+    }
+
+    if (c == 10) {
+        return 1
+    }
+
+    if (c == 9) {
+        return 1
+    }
+
+    return 0
+}
+```
+
+Test:
+
+```mc
+head(custom) {
+    fn is_space(I64 c) {
+        if (c == 32) {
+            return 1
+        }
+
+        if (c == 10) {
+            return 1
+        }
+
+        if (c == 9) {
+            return 1
+        }
+
+        return 0
+    }
+
+    fn main() {
+        pin("%I64\n", is_space(32))
+        pin("%I64\n", is_space(43))
+    }
+}
+```
+
+---
+
+# 7. First token stream
+
+For learning, you can print token names directly instead of storing complicated token objects.
+
+```mc
+head(custom) {
+    fn is_digit(I64 c) {
+        if (c >= 48) {
+            if (c <= 57) {
+                return 1
+            }
+        }
+
+        return 0
+    }
+
+    fn main() {
+        I64 fd = open("test.mc", 0)
+        I64 size = file_size(fd)
+        I64 i = 0
+
+        file_seek(fd, 0)
+
+        while (i < size) {
+            I64 c = file_read8(fd)
+
+            if (is_digit(c) == 1) {
+                pin("NUMBER_CHAR %c\n", c)
+            }
+            else {
+                if (c == 43) {
+                    pin("PLUS\n")
+                }
+                else {
+                    if (c == 32) {
+                        pin("SPACE\n")
+                    }
+                    else {
+                        pin("INVALID %I64\n", c)
+                    }
+                }
+            }
+
+            i = i + 1
+        }
+
+        pin("EOF\n")
+        close(fd)
+    }
+}
 ```
 
 For:
@@ -244,95 +381,300 @@ For:
 12 + 5
 ```
 
-the result should be:
-
-<table>
-<tr><th>Token</th><th>Value</th></tr>
-<tr><td><code>NUMBER</code></td><td>12</td></tr>
-<tr><td><code>PLUS</code></td><td></td></tr>
-<tr><td><code>NUMBER</code></td><td>5</td></tr>
-<tr><td><code>EOF</code></td><td></td></tr>
-</table>
-
-### Stop here and test hard
-
-Try:
+you should see something like:
 
 ```text
-1+2
-10 + 20
-999+1
-7
-+
-12x5
-```
-
-A lexer that works only for the happy path will become a parser bug later.
-
----
-
-# Stage 5 — Parse the first grammar
-
-Your first grammar can be:
-
-```text
-expression := NUMBER "+" NUMBER
-```
-
-That means the parser expects exactly:
-
-```text
-NUMBER
+NUMBER_CHAR 1
+NUMBER_CHAR 2
+SPACE
 PLUS
-NUMBER
+SPACE
+NUMBER_CHAR 5
 EOF
 ```
 
-Pseudo-code:
+Not a real lexer yet, but now you can see what the scanner is doing.
 
-```text
-parse_expression:
+---
 
-    expect NUMBER
-    left = token_value
+# 8. Read a complete number from a file
 
-    expect PLUS
+Now combine digits.
 
-    expect NUMBER
-    right = token_value
+A simple version can use file position explicitly:
 
-    expect EOF
+```mc
+head(custom) {
+    fn is_digit(I64 c) {
+        if (c >= 48) {
+            if (c <= 57) {
+                return 1
+            }
+        }
+
+        return 0
+    }
+
+    fn read_number_at(I64 fd, I64 start, I64 size) {
+        I64 pos = start
+        I64 number = 0
+
+        file_seek(fd, pos)
+
+        while (pos < size) {
+            I64 c = file_read8(fd)
+
+            if (is_digit(c) == 0) {
+                return number
+            }
+
+            number = number * 10 + (c - 48)
+            pos = pos + 1
+        }
+
+        return number
+    }
+
+    fn main() {
+        I64 fd = open("test.mc", 0)
+        I64 size = file_size(fd)
+
+        I64 n = read_number_at(fd, 0, size)
+
+        pin("%I64\n", n)
+
+        close(fd)
+    }
+}
 ```
 
-At first, do not generate code.
-
-Simply calculate:
+If the file starts with:
 
 ```text
-left + right
+123 + 5
 ```
 
-and print the result.
+this should print:
 
-If:
+```text
+123
+```
+
+Later you will also need to know **where the number ended**. That is where lexer state becomes useful.
+
+---
+
+# 9. Lexer state
+
+A real lexer needs state such as:
+
+```text
+input fd
+input size
+position
+current character
+token kind
+token value
+```
+
+The conceptual state:
+
+```text
+position = 0
+current  = '1'
+token    = NONE
+value    = 0
+```
+
+A MicroC learning compiler can keep this state in a small fixed scratch region, or pass it through helper functions. If you use fixed memory, document every address and keep it away from your program/code regions.
+
+The important idea is the API:
+
+```text
+advance()
+skip_space()
+read_number()
+next_token()
+```
+
+---
+
+# 10. What `next_token()` should do
+
+Pseudo-MicroC:
+
+```mc
+fn next_token() {
+    skip_space()
+
+    if (at_end() == 1) {
+        set_token(4)
+        return 4
+    }
+
+    if (is_digit(current()) == 1) {
+        I64 n = read_number()
+        set_token_value(n)
+        set_token(1)
+        return 1
+    }
+
+    if (current() == 43) {
+        advance()
+        set_token(2)
+        return 2
+    }
+
+    set_token(0)
+    return 0
+}
+```
+
+Token meanings:
+
+```text
+0 INVALID
+1 NUMBER
+2 PLUS
+4 EOF
+```
+
+Goal:
 
 ```text
 12 + 5
 ```
 
-prints:
+becomes:
+
+```text
+NUMBER 12
+PLUS
+NUMBER 5
+EOF
+```
+
+---
+
+# 11. First parser
+
+Your first grammar:
+
+```text
+expression := NUMBER PLUS NUMBER
+```
+
+Parser logic:
+
+```mc
+fn parse_expression() {
+    next_token()
+
+    if (token_kind() != 1) {
+        pin("expected number\n")
+        return 0
+    }
+
+    I64 left = token_value()
+
+    next_token()
+
+    if (token_kind() != 2) {
+        pin("expected +\n")
+        return 0
+    }
+
+    next_token()
+
+    if (token_kind() != 1) {
+        pin("expected number\n")
+        return 0
+    }
+
+    I64 right = token_value()
+
+    return left + right
+}
+```
+
+This is not code generation yet.
+
+It is a parser acting as a calculator.
+
+For:
+
+```text
+12 + 5
+```
+
+it returns:
 
 ```text
 17
 ```
 
-your lexer and parser are cooperating.
+---
+
+# 12. Add `-`
+
+New token:
+
+```text
+3 = MINUS
+```
+
+Lexer idea:
+
+```mc
+if (current() == 45) {
+    advance()
+    set_token(3)
+    return 3
+}
+```
+
+Parser:
+
+```mc
+fn parse_expression() {
+    next_token()
+
+    I64 left = token_value()
+
+    next_token()
+
+    I64 op = token_kind()
+
+    next_token()
+
+    I64 right = token_value()
+
+    if (op == 2) {
+        return left + right
+    }
+
+    if (op == 3) {
+        return left - right
+    }
+
+    return 0
+}
+```
+
+Now:
+
+```text
+12 + 5 → 17
+12 - 5 → 7
+```
 
 ---
 
-# Stage 6 — Add a real expression grammar
+# 13. Expression / term / factor
 
-Once the fixed grammar works, use:
+Once `+` and `-` work, add real precedence.
+
+Grammar:
 
 ```text
 expression := term { ("+" | "-") term }
@@ -340,242 +682,435 @@ term       := factor { ("*" | "/" | "%") factor }
 factor     := NUMBER | "(" expression ")"
 ```
 
-This is the important structure:
+MicroC-shaped parser:
 
-<table>
-<tr>
-<td></td>
-<td align="center"><b>expression</b></td>
-<td></td>
-</tr>
-<tr>
-<td align="center">↙</td>
-<td></td>
-<td align="center">↘</td>
-</tr>
-<tr>
-<td align="center"><b>term</b></td>
-<td></td>
-<td align="center"><code>+ term</code><br><code>- term</code></td>
-</tr>
-</table>
+```mc
+fn parse_expression() {
+    I64 value = parse_term()
 
-and:
+    while (token_kind() == TOKEN_PLUS()) {
+        next_token()
+        value = value + parse_term()
+    }
 
-<table>
-<tr>
-<td></td>
-<td align="center"><b>term</b></td>
-<td></td>
-</tr>
-<tr>
-<td align="center">↙</td>
-<td></td>
-<td align="center">↘</td>
-</tr>
-<tr>
-<td align="center"><b>factor</b></td>
-<td></td>
-<td align="center"><code>* factor</code><br><code>/ factor</code></td>
-</tr>
-</table>
+    return value
+}
+```
 
-This is what makes:
+Then extend for minus:
+
+```mc
+fn parse_expression() {
+    I64 value = parse_term()
+
+    while (token_kind() == TOKEN_PLUS() || token_kind() == TOKEN_MINUS()) {
+        I64 op = token_kind()
+        next_token()
+
+        I64 right = parse_term()
+
+        if (op == TOKEN_PLUS()) {
+            value = value + right
+        }
+        else {
+            value = value - right
+        }
+    }
+
+    return value
+}
+```
+
+If your MicroC build does not yet support `||`, write the equivalent with nested `if` logic.
+
+Term:
+
+```mc
+fn parse_term() {
+    I64 value = parse_factor()
+
+    while (token_kind() == TOKEN_STAR()) {
+        next_token()
+        value = value * parse_factor()
+    }
+
+    return value
+}
+```
+
+Factor:
+
+```mc
+fn parse_factor() {
+    if (token_kind() == TOKEN_NUMBER()) {
+        I64 value = token_value()
+        next_token()
+        return value
+    }
+
+    pin("expected factor\n")
+    return 0
+}
+```
+
+---
+
+# 14. Add parentheses
+
+Tokens:
+
+```text
+LPAREN
+RPAREN
+```
+
+Factor becomes:
+
+```mc
+fn parse_factor() {
+    if (token_kind() == TOKEN_NUMBER()) {
+        I64 value = token_value()
+        next_token()
+        return value
+    }
+
+    if (token_kind() == TOKEN_LPAREN()) {
+        next_token()
+
+        I64 value = parse_expression()
+
+        if (token_kind() != TOKEN_RPAREN()) {
+            pin("expected )\n")
+            return 0
+        }
+
+        next_token()
+        return value
+    }
+
+    pin("expected factor\n")
+    return 0
+}
+```
+
+Now:
 
 ```text
 2 + 3 * 4
 ```
 
-mean:
+→ `14`
 
-```text
-2 + (3 * 4)
-```
-
-instead of:
+and:
 
 ```text
 (2 + 3) * 4
 ```
 
+→ `20`
+
 ---
 
-# Stage 7 — Stop evaluating, start emitting
+# 15. Start code generation
 
-Until now the compiler can behave like a calculator.
+Stop returning the result.
 
-Now change the destination.
+Start writing bytes.
 
-Instead of:
+A byte writer:
 
-```text
-return left + right
+```mc
+fn emit8(I64 fd, I64 value) {
+    file_write8(fd, value & 255)
+    return 0
+}
 ```
 
-emit machine instructions.
+A little-endian 32-bit writer:
 
-The code generator needs primitive byte writers:
-
-```text
-emit8
-emit32
-emit64
+```mc
+fn emit32(I64 fd, I64 value) {
+    emit8(fd, value)
+    emit8(fd, value >> 8)
+    emit8(fd, value >> 16)
+    emit8(fd, value >> 24)
+    return 0
+}
 ```
 
-Then instruction helpers:
+A little-endian 64-bit writer:
 
-```text
-emit_mov_rax_imm64
-emit_add_rax_...
+```mc
+fn emit64(I64 fd, I64 value) {
+    emit8(fd, value)
+    emit8(fd, value >> 8)
+    emit8(fd, value >> 16)
+    emit8(fd, value >> 24)
+    emit8(fd, value >> 32)
+    emit8(fd, value >> 40)
+    emit8(fd, value >> 48)
+    emit8(fd, value >> 56)
+    return 0
+}
 ```
 
-Do not begin with fifty x86 instructions.
+This is real compiler infrastructure.
 
-Start with enough to emit:
+---
+
+# 16. Emit `mov rax, imm64`
+
+x86-64 encoding:
+
+```text
+48 B8 imm64
+```
+
+MicroC:
+
+```mc
+fn emit_mov_rax_imm64(I64 fd, I64 value) {
+    emit8(fd, 0x48)
+    emit8(fd, 0xB8)
+    emit64(fd, value)
+    return 0
+}
+```
+
+To emit:
 
 ```asm
 mov rax, 12
 ```
 
-Then verify the raw bytes using a disassembler.
+call:
 
-Only after that add `add`.
+```mc
+emit_mov_rax_imm64(out_fd, 12)
+```
 
 ---
 
-# Stage 8 — Give generated code a place to live
+# 17. Emit a tiny raw program
 
-There are two useful targets.
+A minimal generated Linux function also needs a way to exit or return somewhere valid.
 
-## Raw `.bin`
+For learning, first generate code and inspect it with a disassembler instead of executing it immediately.
 
-Simplest while learning:
+Example generator:
 
-```text
-machine-code bytes only
+```mc
+head(custom) {
+    fn emit8(I64 fd, I64 value) {
+        file_write8(fd, value & 255)
+        return 0
+    }
+
+    fn emit64(I64 fd, I64 value) {
+        emit8(fd, value)
+        emit8(fd, value >> 8)
+        emit8(fd, value >> 16)
+        emit8(fd, value >> 24)
+        emit8(fd, value >> 32)
+        emit8(fd, value >> 40)
+        emit8(fd, value >> 48)
+        emit8(fd, value >> 56)
+        return 0
+    }
+
+    fn emit_mov_rax_imm64(I64 fd, I64 value) {
+        emit8(fd, 0x48)
+        emit8(fd, 0xB8)
+        emit64(fd, value)
+        return 0
+    }
+
+    fn main() {
+        I64 out = open("out.bin", 577)
+
+        emit_mov_rax_imm64(out, 12)
+
+        close(out)
+    }
+}
 ```
 
-Compile the compiler itself normally:
-
-```bash
-./mcc tiny-compiler.mc -o tiny-compiler
-```
-
-Then let the tiny compiler write:
-
-```text
-program.bin
-```
-
-Raw output is easiest for inspecting exact bytes.
-
-## ELF64
-
-Later add:
-
-```text
-ELF header
-program header
-payload
-```
-
-MicroC's current ELF layout begins at:
-
-```text
-0x400000
-```
-
-with generated payload beginning after the headers.
-
-Do **not** start your learning compiler with a full ELF writer. Get raw machine-code emission correct first.
+If your `open` flags differ, use the output-file pattern already supported by your current MicroC build.
 
 ---
 
-# Stage 9 — Add variables
+# 18. Add arithmetic emission
 
-After expressions work, add:
-
-```text
-let x = 5
-```
-
-or, if you want the language to resemble MicroC:
+One easy strategy for a learning compiler:
 
 ```text
-I64 x = 5
+left expression → RAX
+save left
+right expression → RAX
+combine
 ```
 
-Now you need a symbol table.
-
-A minimal entry contains:
-
-```text
-name
-stack offset / storage location
-```
+Later you can use stack operations or another register.
 
 Conceptually:
 
-| name | location |
-|---|---|
-| `x` | `-8` |
-| `y` | `-16` |
-
-The parser sees an identifier and asks:
-
 ```text
-which variable is this?
-where is it stored?
+2 + 3
 ```
+
+becomes:
+
+```asm
+mov rax, 2
+push rax
+mov rax, 3
+pop rcx
+add rax, rcx
+```
+
+You do not need a register allocator yet.
 
 ---
 
-# Stage 10 — Add statements
+# 19. Add variables
 
-Recommended order:
+Source:
+
+```mc
+I64 x = 5
+```
+
+You need a symbol table.
+
+Minimal entry:
 
 ```text
+name
+stack offset
+```
+
+Example:
+
+```text
+x → -8
+y → -16
+```
+
+Parser flow:
+
+```text
+type
+ ↓
+identifier
+ ↓
+=
+ ↓
 expression
-    ↓
-declaration
-    ↓
-assignment
-    ↓
-pin / output
-    ↓
-return
-    ↓
-if
-    ↓
-while
-    ↓
-functions
+ ↓
+allocate stack slot
+ ↓
+emit store
 ```
 
-Do not add function calls before basic statements are boring.
+A simple MicroC helper shape:
+
+```mc
+fn add_variable(I64 name_ptr, I64 offset) {
+    // store name + offset in your variable table
+    return 0
+}
+```
+
+Lookup:
+
+```mc
+fn find_variable(I64 name_ptr) {
+    // linear search is fine for the first compiler
+    return 0
+}
+```
+
+Do not optimize the symbol table yet.
 
 ---
 
-# Stage 11 — Add control flow
+# 20. Add assignments
 
-An `if` eventually becomes:
+Source:
 
-```text
-evaluate condition
-       │
-       ▼
-compare
-       │
-       ▼
-jump if false ───────────┐
-       │                 │
-       ▼                 │
-      body               │
-       │                 │
-       └─────────────────┘
+```mc
+x = x + 1
 ```
 
-A `while` becomes:
+Parser:
+
+```text
+identifier
+    ↓
+is next token '=' ?
+    ↓
+parse expression
+    ↓
+find variable storage
+    ↓
+emit store
+```
+
+---
+
+# 21. Add `if`
+
+Source:
+
+```mc
+if (x == 10) {
+    ...
+}
+```
+
+Generated structure:
+
+```text
+condition
+   ↓
+comparison
+   ↓
+jump-if-false ????
+   ↓
+body
+   ↓
+end:
+```
+
+The `????` is unknown when you first emit the jump.
+
+So record:
+
+```text
+patch_position
+```
+
+After the body:
+
+```text
+end_position = current_output_position
+```
+
+Then patch the jump displacement.
+
+---
+
+# 22. Add `while`
+
+Source:
+
+```mc
+while (x < 10) {
+    x = x + 1
+}
+```
+
+Structure:
 
 ```text
 loop_start:
@@ -586,175 +1121,131 @@ loop_start:
 loop_end:
 ```
 
-This introduces **patching** because the compiler may emit a jump before it knows the destination address.
+Now you have both forward and backward jumps.
 
-Record:
-
-```text
-patch position
-```
-
-and fill in the displacement later.
+This is the right time to learn relative displacement math.
 
 ---
 
-# Stage 12 — Add functions
+# 23. Add functions
 
-Now you need:
+Minimal function metadata:
 
 ```text
-function name
-function position
+name
+output position
 parameter count
-unresolved calls
 ```
 
-A call can appear before the compiler has seen the function body.
-
-That gives you the classic compiler problem:
+Conceptual table:
 
 ```text
-call foo
-     │
-     └── where is foo?
+add   → 0x120
+main  → 0x180
 ```
 
-If unknown:
+If a call appears before the function:
+
+```mc
+foo()
+```
+
+record:
 
 ```text
-record patch
+call patch position
+function name
 ```
 
-When `foo` is finally parsed:
+Later:
 
 ```text
-resolve its pending calls
+foo definition found
+        ↓
+patch all calls to foo
 ```
-
-This is one of the places where a single-pass compiler gets interesting.
 
 ---
 
-# Stage 13 — Compare with real `compiler.mc`
+# 24. Add ELF64 last
 
-Only now start reading the real compiler.
+Do raw bytes first.
 
-Pick one subsystem at a time:
+Then add:
+
+```text
+ELF64 header
+program header
+generated payload
+```
+
+Your current MicroC executable layout uses:
+
+```text
+0x400000  ELF base
+0x400040  program header
+0x400078  generated payload
+```
+
+A learning compiler does not need every ELF feature.
+
+One loadable segment is enough for the first version.
+
+---
+
+# 25. Compare with real `compiler.mc`
+
+Only after your tiny compiler has:
 
 ```text
 lexer
 parser
-expression parser
-function table
-call patching
-ELF writer
-runtime emitters
-inline assembler
+expressions
+emission
+patching
+functions
 ```
 
-Do not ask:
+start tracing the real compiler.
 
-> "How does `compiler.mc` work?"
+Good questions:
 
-Ask:
+```text
+Where is current character stored?
+Where does next_token advance input?
+Where are function entries stored?
+How are unresolved calls patched?
+Where is ELF entry calculated?
+Where are strings appended?
+```
 
-> "Where does `next_token` get the next character?"
+Bad first question:
 
-or:
+```text
+How does the whole compiler work?
+```
 
-> "Where is an unresolved function call stored?"
-
-Small questions have traceable answers.
+That question is too big to hold in your head at once.
 
 ---
 
-# Suggested tiny compiler milestones
+# Final compiler challenge
 
-| Version | Understands |
-|---|---|
-| v0 | one integer |
-| v1 | `12 + 5` |
-| v2 | `+ - * /` |
-| v3 | parentheses |
-| v4 | variables |
-| v5 | assignments |
-| v6 | comparisons |
-| v7 | `if` |
-| v8 | `while` |
-| v9 | functions |
-| v10 | raw x86-64 output |
-| v11 | ELF64 |
-| v12 | enough language to compile itself |
-
-Self-hosting is the summit, not the trailhead.
-
----
-
-# Debugging checklist
-
-If a compiler test fails, identify which stage failed.
+Build this sequence without copying the real compiler:
 
 ```text
-wrong characters?
-    ↓
-reader
-
-wrong token?
-    ↓
-lexer
-
-right token, wrong structure?
-    ↓
-parser
-
-right structure, wrong bytes?
-    ↓
-codegen
-
-right bytes, program crashes?
-    ↓
-ABI / executable layout / generated machine code
+v1  12 + 5
+v2  12 - 5
+v3  2 + 3 * 4
+v4  (2 + 3) * 4
+v5  variables
+v6  assignment
+v7  comparisons
+v8  if
+v9  while
+v10 functions
+v11 raw x86-64
+v12 ELF64
 ```
 
-Print intermediate state.
-
-For example:
-
-```text
-TOKEN NUMBER 12
-TOKEN PLUS
-TOKEN NUMBER 5
-TOKEN EOF
-```
-
-A compiler is much easier to debug when every stage can prove what it believes.
-
----
-
-# Final test
-
-You understand the tiny compiler when you can explain this complete path:
-
-```text
-"12 + 5"
-    │
-    ▼
-characters
-    │
-    ▼
-NUMBER(12) PLUS NUMBER(5)
-    │
-    ▼
-expression
-    │
-    ▼
-x86-64 instructions
-    │
-    ▼
-machine-code bytes
-    │
-    ▼
-CPU
-```
-
-without opening `compiler.mc`.
+At that point `compiler.mc` stops looking like a wall and starts looking like a collection of familiar machines.
