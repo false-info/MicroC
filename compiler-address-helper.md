@@ -1,347 +1,633 @@
-# MicroC Compiler Address Helper
+# MicroC + SuperNovaOS Address Helper
 
-Quick reference for the fixed memory layout used by the current `mcc`.
+A compact memory-map reference for the current MicroC compiler and SuperNovaOS layout.
 
-> This file describes the current compiler layout.
-> Update it whenever a fixed address, table, buffer or memory region changes.
+> Keep this file in sync with `compiler.mc`, `kernel-mc/src/stage1.mc`, `kernel-mc/src/stage2.mc`, and `kernel-mc/src/kernel.mc`.
+> Fixed addresses are useful only while the code that owns them still agrees with this map.
 
 ---
 
-# ELF Memory Map
+# 1. MicroC compiler memory map
 
-| Address / Range | Meaning |
-|---|---|
-| `0x0000000000000000` | NULL. Never use as a valid pointer |
-| `0x0000000000400000` | MicroC ELF image base |
-| `0x0000000000400000 - 0x000000000040003F` | ELF64 header |
-| `0x0000000000400040 - 0x0000000000400077` | ELF64 program header |
-| `0x0000000000400078` | Start of generated payload |
-| `0x0000000000400078+` | Generated code, runtime and string data |
-| `0x0000000000800000` | Compiler workspace |
-| `0x00000000008FFFFF` | End of current fixed PT_LOAD mapping |
-| `0x0000000000900000+` | Outside current fixed MicroC mapping |
+The compiler uses two important fixed regions:
 
-The executable entry point is calculated as:
+- `0x400000+` for the generated ELF image.
+- `0x800000+` for compiler state, tables, scratch buffers, and the dynamic pool.
+
+## Compiler overview
+
+<table>
+  <tr>
+    <th>High address</th>
+    <th>Region</th>
+    <th>Low address</th>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x8FFFFF</code></td>
+    <td>
+      <table>
+        <tr>
+          <td align="center"><b>DYNAMIC COMPILER POOL</b><br><sub>strings / compiler data</sub></td>
+          <td rowspan="2">▓</td>
+        </tr>
+        <tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td><code>0x840000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x83FFFF</code></td>
+    <td align="center"><b>free / future metadata</b></td>
+    <td><code>0x833000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x832FFF</code></td>
+    <td>
+      <table>
+        <tr>
+          <td align="center"><b>STRING METADATA</b><br><sub>512 entries · 24 bytes</sub></td>
+          <td rowspan="2">▓</td>
+        </tr>
+        <tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td><code>0x830000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x82FFFF</code></td>
+    <td align="center"><b>free / future type + safety metadata</b></td>
+    <td><code>0x824000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x823FFF</code></td>
+    <td>
+      <table>
+        <tr>
+          <td align="center"><b>VARIABLE TABLE</b><br><sub>1024 entries · 16 bytes</sub></td>
+          <td rowspan="2">▓</td>
+        </tr>
+        <tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td><code>0x820000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x81FFFF</code></td>
+    <td align="center"><b>free / future relocations + references</b></td>
+    <td><code>0x81A000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x819FFF</code></td>
+    <td>
+      <table>
+        <tr>
+          <td align="center"><b>UNRESOLVED CALL TABLE</b><br><sub>2048 entries · 16 bytes</sub></td>
+          <td rowspan="2">▓</td>
+        </tr>
+        <tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td><code>0x812000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x811FFF</code></td>
+    <td align="center"><b>free / extended function metadata</b></td>
+    <td><code>0x811000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x810FFF</code></td>
+    <td>
+      <table>
+        <tr>
+          <td align="center"><b>FUNCTION TABLE</b><br><sub>256 entries · 16 bytes</sub></td>
+          <td rowspan="2">▓</td>
+        </tr>
+        <tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td><code>0x810000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x80FFFF</code></td>
+    <td align="center"><b>parser / token storage</b></td>
+    <td><code>0x801300</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x8012FF</code></td>
+    <td align="center"><b>token 1 text buffer</b></td>
+    <td><code>0x801200</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x8011FF</code></td>
+    <td align="center"><b>currently free token-buffer slot</b></td>
+    <td><code>0x801100</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x8010FF</code></td>
+    <td align="center"><b>token 0 text buffer</b></td>
+    <td><code>0x801000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x800FFF</code></td>
+    <td align="center"><b>compiler scratch space</b></td>
+    <td><code>0x800460</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x80045F</code></td>
+    <td align="center"><b>function parameter scratch</b></td>
+    <td><code>0x800400</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x8003FF</code></td>
+    <td align="center"><b>lexer / parser reserve</b></td>
+    <td><code>0x800140</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x80013F</code></td>
+    <td align="center"><b>token metadata</b></td>
+    <td><code>0x800100</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x8000FF</code></td>
+    <td>
+      <table>
+        <tr>
+          <td align="center"><b>CORE COMPILER STATE</b><br><sub>FDs · lexer state · counters · diagnostics</sub></td>
+          <td rowspan="2">▓</td>
+        </tr>
+        <tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td><code>0x800000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x7FFFFF</code></td>
+    <td align="center"><sub>not compiler workspace</sub></td>
+    <td><code>0x400078+</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x400077</code></td>
+    <td align="center"><b>ELF64 program header</b></td>
+    <td><code>0x400040</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x40003F</code></td>
+    <td>
+      <table>
+        <tr>
+          <td align="center"><b>ELF64 HEADER</b></td>
+          <td rowspan="2">▓</td>
+        </tr>
+        <tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td><code>0x400000</code></td>
+  </tr>
+</table>
+
+### Generated-image layout
+
+<table>
+  <tr>
+    <td><code>0x400000 - 0x40003F</code></td>
+    <td><b>ELF64 header</b></td>
+  </tr>
+  <tr>
+    <td><code>0x400040 - 0x400077</code></td>
+    <td><b>Program header</b></td>
+  </tr>
+  <tr>
+    <td><code>0x400078+</code></td>
+    <td><b>Generated payload</b> · code · runtime · strings</td>
+  </tr>
+</table>
+
+The executable entry is:
 
 ```text
 0x400000 + entry_position
 ```
 
-`0x400078` is therefore the beginning of the generated payload, but is not guaranteed to be the final program entry point.
+`0x400078` is the first byte of the generated payload. It is not necessarily the final entry point.
 
 ---
 
-# Compiler State
+## Core compiler-state addresses
 
-| Address | Meaning |
-|---|---|
-| `0x800000` | Input file descriptor |
-| `0x800008` | Output file descriptor |
-| `0x800010` | Input position |
-| `0x800018` | Input size |
-| `0x800020` | Current character |
-| `0x800030` | Raw output flag |
-| `0x800038` | Function count |
-| `0x800040` | Unresolved call count |
-| `0x800048` | Variable count |
-| `0x800050` | String count |
-| `0x800058` | Current function is `main` |
-| `0x800060` | `main` output position |
-| `0x800068` | Dynamic string pool pointer |
-| `0x800070` | Peek token available flag |
-| `0x800078` | Compilation failed flag |
-| `0x800080` | Raw entry jump patch position |
-| `0x800088` | Output disabled / boot output finished |
-| `0x800090` | Current output position |
-| `0x800098` | `custom` enabled |
-| `0x8000A0` | `asm-x86-64` enabled |
-| `0x8000A8` | `custom` used |
-| `0x8000B0` | `asm-x86-64` used |
-| `0x8000B8` | ASM entry position |
-| `0x8000C0` | Current source line |
-| `0x8000C8` | Current source column |
-| `0x8000D0` | Error count |
-| `0x8000D8` | Warning count |
-| `0x8000E0` | Source path pointer |
-| `0x8000E8` | Diagnostic line |
-| `0x8000F0` | Diagnostic column |
+<table>
+  <tr><th>Address</th><th>Meaning</th></tr>
+  <tr><td><code>0x800000</code></td><td>input file descriptor</td></tr>
+  <tr><td><code>0x800008</code></td><td>output file descriptor</td></tr>
+  <tr><td><code>0x800010</code></td><td>input position</td></tr>
+  <tr><td><code>0x800018</code></td><td>input size</td></tr>
+  <tr><td><code>0x800020</code></td><td>current lexer character</td></tr>
+  <tr><td><code>0x800030</code></td><td>raw-output flag</td></tr>
+  <tr><td><code>0x800038</code></td><td>function count</td></tr>
+  <tr><td><code>0x800040</code></td><td>unresolved-call count</td></tr>
+  <tr><td><code>0x800048</code></td><td>variable count</td></tr>
+  <tr><td><code>0x800050</code></td><td>string count</td></tr>
+  <tr><td><code>0x800060</code></td><td>main output position</td></tr>
+  <tr><td><code>0x800068</code></td><td>dynamic pool pointer</td></tr>
+  <tr><td><code>0x800070</code></td><td>peek-token flag</td></tr>
+  <tr><td><code>0x800078</code></td><td>compilation-failed flag</td></tr>
+  <tr><td><code>0x800080</code></td><td>raw entry-jump patch</td></tr>
+  <tr><td><code>0x800090</code></td><td>current output position</td></tr>
+  <tr><td><code>0x8000C0</code></td><td>source line</td></tr>
+  <tr><td><code>0x8000C8</code></td><td>source column</td></tr>
+  <tr><td><code>0x8000D0</code></td><td>error count</td></tr>
+  <tr><td><code>0x8000D8</code></td><td>warning count</td></tr>
+</table>
 
 ---
 
-# Compiler Tables and Buffers
+# 2. SuperNovaOS memory map
 
-| Range | Purpose |
-|---|---|
-| `0x800000 - 0x8000FF` | Core compiler state |
-| `0x800100 - 0x80013F` | Token metadata |
-| `0x800400 - 0x80045F` | Function parameter scratch area |
-| `0x801000 - 0x8010FF` | Token 0 text buffer |
-| `0x801200 - 0x8012FF` | Token 1 text buffer |
-| `0x810000 - 0x810FFF` | Function table |
-| `0x812000 - 0x819FFF` | Unresolved call table |
-| `0x820000 - 0x823FFF` | Variable table |
-| `0x830000 - 0x832FFF` | String metadata table |
-| `0x840000+` | Dynamic compiler string/data pool |
+The current kernel identity-maps the low 16 MiB, so the addresses below are physical and directly reachable through the current low-memory mapping.
+
+## OS overview
+
+<table>
+  <tr>
+    <th>High address</th>
+    <th>Region</th>
+    <th>Low address</th>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0xD3FFFF</code></td>
+    <td>
+      <table>
+        <tr>
+          <td align="center"><b>AOT OUTPUT BUFFER</b><br><sub>compiler ahead-of-time output</sub></td>
+          <td rowspan="2">▓</td>
+        </tr>
+        <tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td><code>0xD00000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0xC3FFFF</code></td>
+    <td>
+      <table>
+        <tr>
+          <td align="center"><b>JIT OUTPUT BUFFER</b><br><sub>compiler JIT output</sub></td>
+          <td rowspan="2">▓</td>
+        </tr>
+        <tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td><code>0xC00000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0xA3FFFF</code></td>
+    <td>
+      <table>
+        <tr>
+          <td align="center"><b>ABI FILE BUFFER</b><br><sub>256 KiB</sub></td>
+          <td rowspan="2">▓</td>
+        </tr>
+        <tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td><code>0xA00000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x55....</code></td>
+    <td align="center"><b>editor cache</b></td>
+    <td><code>0x550000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x54....</code></td>
+    <td align="center"><b>editor path</b></td>
+    <td><code>0x540000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x53FFFF</code></td>
+    <td>
+      <table>
+        <tr>
+          <td align="center"><b>EDITOR BUFFER</b><br><sub>256 KiB maximum</sub></td>
+          <td rowspan="2">▓</td>
+        </tr>
+        <tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td><code>0x500000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x4F....</code></td>
+    <td align="center"><b>program argv + argument text</b></td>
+    <td><code>0x4F0000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x47FFFF</code></td>
+    <td>
+      <table>
+        <tr>
+          <td align="center"><b>PROGRAM AREA</b><br><sub>current program window · 512 KiB</sub></td>
+          <td rowspan="2">▓</td>
+        </tr>
+        <tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td><code>0x400000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x1FFFFF</code></td>
+    <td align="center"><b>ABI / kernel service area</b></td>
+    <td><code>0x1F0000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x1EFFFF</code></td>
+    <td align="center"><b>kernel buffers / state</b></td>
+    <td><code>0x180000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x17FFFF</code></td>
+    <td>
+      <table>
+        <tr>
+          <td align="center"><b>KERNEL HEAP</b><br><sub>0x120000 → 0x180000</sub></td>
+          <td rowspan="2">▓</td>
+        </tr>
+        <tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td><code>0x120000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>kernel + ...</code></td>
+    <td>
+      <table>
+        <tr>
+          <td align="center"><b>SUPERNOVA KERNEL</b><br><sub>64-bit kernel entry</sub></td>
+          <td rowspan="2">▓</td>
+        </tr>
+        <tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td><code>0x100000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x90000</code></td>
+    <td align="center"><b>bootstrap stack top</b><br><sub>stack grows downward</sub></td>
+    <td><code>RSP = 0x90000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0xA095FF</code></td>
+    <td>
+      <table>
+        <tr>
+          <td align="center"><b>VGA GRAPHICS MEMORY</b><br><sub>0xA0000 base · 640×480 planar path</sub></td>
+          <td rowspan="2">▓</td>
+        </tr>
+        <tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td><code>0xA0000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>stage2 + ...</code></td>
+    <td>
+      <table>
+        <tr>
+          <td align="center"><b>STAGE 2</b><br><sub>second-stage bootloader</sub></td>
+          <td rowspan="2">▓</td>
+        </tr>
+        <tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td><code>0x8000</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x7DFF</code></td>
+    <td>
+      <table>
+        <tr>
+          <td align="center"><b>STAGE 1 / BIOS BOOT SECTOR</b><br><sub>512-byte boot sector</sub></td>
+          <td rowspan="2">▓</td>
+        </tr>
+        <tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td><code>0x7C00</code></td>
+  </tr>
+
+  <tr>
+    <td align="right"><code>0x7BFF</code></td>
+    <td align="center"><sub>low BIOS / bootstrap memory</sub></td>
+    <td><code>0x000000</code></td>
+  </tr>
+</table>
+
+> The rows are a reference map, not a statement that every byte between every labeled base is occupied.
+> When a region has an explicit size in the code, the full range is shown. Otherwise the map marks the important base address.
 
 ---
 
-# Table Sizes
+## Kernel detail map
+
+<table>
+  <tr><th>Address</th><th>Kernel use</th></tr>
+
+  <tr><td><code>0x100000</code></td><td><b>kernel entry / kernel image base</b></td></tr>
+
+  <tr><td><code>0x120000 - 0x17FFFF</code></td><td><b>heap</b></td></tr>
+
+  <tr><td><code>0x180000</code></td><td>terminal column</td></tr>
+  <tr><td><code>0x180008</code></td><td>terminal row</td></tr>
+  <tr><td><code>0x180010</code></td><td>terminal color</td></tr>
+  <tr><td><code>0x180018</code></td><td>shift state</td></tr>
+  <tr><td><code>0x180020</code></td><td>heap-ready flag</td></tr>
+  <tr><td><code>0x180028</code></td><td>extended-key state</td></tr>
+  <tr><td><code>0x180030</code></td><td>keyboard layout</td></tr>
+  <tr><td><code>0x180038</code></td><td>AltGr state</td></tr>
+  <tr><td><code>0x180040</code></td><td>Caps Lock state</td></tr>
+  <tr><td><code>0x180048</code></td><td>editor-cache-valid flag</td></tr>
+
+  <tr><td><code>0x182000</code></td><td><b>heap bitmap</b></td></tr>
+  <tr><td><code>0x183000</code></td><td><b>terminal buffer</b></td></tr>
+  <tr><td><code>0x186000</code></td><td><b>shell buffer</b></td></tr>
+  <tr><td><code>0x187000</code></td><td>number buffer</td></tr>
+  <tr><td><code>0x188000</code></td><td>sector buffer</td></tr>
+  <tr><td><code>0x190000</code></td><td>directory buffer</td></tr>
+  <tr><td><code>0x192000</code></td><td>file buffer</td></tr>
+
+  <tr><td><code>0x1F0000</code></td><td><b>ABI handle table</b></td></tr>
+  <tr><td><code>0x1F1000</code></td><td>program argc</td></tr>
+  <tr><td><code>0x1FF000</code></td><td><b>ABI function table</b></td></tr>
+
+  <tr><td><code>0x400000 - 0x47FFFF</code></td><td><b>program area</b></td></tr>
+  <tr><td><code>0x4F0000</code></td><td>program argv table</td></tr>
+  <tr><td><code>0x4F1000</code></td><td>program argument text</td></tr>
+
+  <tr><td><code>0x500000 - 0x53FFFF</code></td><td><b>editor buffer</b></td></tr>
+  <tr><td><code>0x540000</code></td><td>editor path</td></tr>
+  <tr><td><code>0x550000</code></td><td>editor cache</td></tr>
+
+  <tr><td><code>0xA00000 - 0xA3FFFF</code></td><td><b>ABI file buffer</b></td></tr>
+  <tr><td><code>0xC00000 - 0xC3FFFF</code></td><td><b>compiler JIT buffer</b></td></tr>
+  <tr><td><code>0xD00000 - 0xD3FFFF</code></td><td><b>compiler AOT buffer</b></td></tr>
+</table>
+
+---
+
+# 3. Boot path
+
+<table>
+  <tr>
+    <td>
+      <table>
+        <tr><td align="center"><b>BIOS</b></td><td rowspan="2">▓</td></tr>
+        <tr><td>▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td align="center">loads →</td>
+    <td>
+      <table>
+        <tr><td align="center"><b>stage1</b><br><code>0x7C00</code></td><td rowspan="2">▓</td></tr>
+        <tr><td>▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td align="center">loads →</td>
+    <td>
+      <table>
+        <tr><td align="center"><b>stage2</b><br><code>0x8000</code></td><td rowspan="2">▓</td></tr>
+        <tr><td>▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td align="center">jumps →</td>
+    <td>
+      <table>
+        <tr><td align="center"><b>kernel</b><br><code>0x100000</code></td><td rowspan="2">▓</td></tr>
+        <tr><td>▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+Stage 2 enters the kernel with the bootstrap stack at:
 
 ```text
-Function table
-0x810000
-256 entries
-16 bytes per entry
-4096 bytes total
-
-Unresolved call table
-0x812000
-2048 entries
-16 bytes per entry
-32768 bytes total
-
-Variable table
-0x820000
-1024 entries
-16 bytes per entry
-16384 bytes total
-
-String metadata table
-0x830000
-512 entries
-24 bytes per entry
-12288 bytes total
+RSP = 0x90000
 ```
 
 ---
 
-# Critical Addresses
+# 4. Compiler inside SuperNovaOS
 
-These addresses are part of important compiler or executable state.
+MicroC has dedicated OS-side output regions.
 
-Do not overwrite them with unrelated data.
+<table>
+  <tr>
+    <td>
+      <table>
+        <tr><td align="center"><b>MicroC source</b></td><td rowspan="2">▓</td></tr>
+        <tr><td>▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td align="center">→</td>
+    <td>
+      <table>
+        <tr><td align="center"><b>compiler</b></td><td rowspan="2">▓</td></tr>
+        <tr><td>▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td align="center">→</td>
+    <td>
+      <table>
+        <tr><td align="center"><b>JIT</b><br><code>0xC00000</code></td><td rowspan="2">▓</td></tr>
+        <tr><td>▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+    <td align="center">or</td>
+    <td>
+      <table>
+        <tr><td align="center"><b>AOT</b><br><code>0xD00000</code></td><td rowspan="2">▓</td></tr>
+        <tr><td>▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
 
-| Address | Critical because |
-|---|---|
-| `0x000000` | NULL |
-| `0x400000` | ELF64 header begins |
-| `0x400040` | Program header begins |
-| `0x400078` | Generated payload begins |
-| `0x800000` | Input FD |
-| `0x800008` | Output FD |
-| `0x800010` | Input position |
-| `0x800018` | Input size |
-| `0x800020` | Lexer current character |
-| `0x800038` | Function table count |
-| `0x800040` | Call table count |
-| `0x800048` | Variable table count |
-| `0x800050` | String table count |
-| `0x800060` | Main function position |
-| `0x800068` | Dynamic pool pointer |
-| `0x800070` | Peek-token state |
-| `0x800078` | Compiler failure state |
-| `0x800080` | Raw entry patch |
-| `0x800088` | Output state |
-| `0x800090` | Output position |
-| `0x800098` | `custom` feature state |
-| `0x8000A0` | ASM feature state |
-| `0x8000B8` | ASM entry position |
-| `0x8000C0` | Source line |
-| `0x8000C8` | Source column |
-| `0x8000D0` | Error counter |
-| `0x8000D8` | Warning counter |
-| `0x8000E0` | Source path |
-| `0x8000E8` | Diagnostic line |
-| `0x8000F0` | Diagnostic column |
-
----
-
-# Do Not Use
-
-Never manually place unrelated data in these regions:
+Both current output windows are `0x40000` bytes:
 
 ```text
-0x400000 - ELF image / generated executable
-
-0x800000 - compiler state
-0x800100 - token metadata
-0x800400 - parameter scratch
-
-0x801000 - token 0 buffer
-0x801200 - token 1 buffer
-
-0x810000 - function table
-0x812000 - unresolved calls
-
-0x820000 - variable table
-
-0x830000 - string metadata
-
-0x840000 - dynamic string/data pool
-```
-
-The following must also never be treated as normal fixed writable storage:
-
-```text
-0x000000                  NULL
-
-0x400000 - 0x40003F       ELF header
-0x400040 - 0x400077       ELF program header
-0x400078+                 generated executable payload
-
-0x900000+                 outside current fixed MicroC mapping
-```
-
-Linux can additionally contain unmapped, protected, stack, library, kernel and ASLR-controlled regions.
-
-Their locations are not guaranteed to remain fixed.
-
----
-
-# Currently Unused Compiler Space
-
-These ranges are currently unused by `mcc`.
-
-They may be used for future compiler features, but they are not guaranteed to remain free forever.
-
-| Range | Possible Future Use |
-|---|---|
-| `0x800028 - 0x80002F` | Extra core state |
-| `0x800140 - 0x8003FF` | Lexer/parser state |
-| `0x800460 - 0x800FFF` | Temporary compiler scratch space |
-| `0x801100 - 0x8011FF` | Extra token buffer |
-| `0x801300 - 0x80FFFF` | Parser / token storage |
-| `0x811000 - 0x811FFF` | Extended function metadata |
-| `0x81A000 - 0x81FFFF` | Relocations / references |
-| `0x824000 - 0x82FFFF` | Type and ownership metadata |
-| `0x833000 - 0x83FFFF` | Constants / debug metadata |
-
----
-
-# Recommended Future Addresses
-
-Page-aligned addresses are preferred for larger new compiler structures.
-
-| Address | Suggested Purpose |
-|---|---|
-| `0x811000` | Extended function metadata |
-| `0x81A000` | Relocation table |
-| `0x81B000` | Symbol/reference table |
-| `0x81C000` | Patch metadata |
-| `0x824000` | Type metadata |
-| `0x825000` | Ownership metadata |
-| `0x826000` | Borrow checker state |
-| `0x827000` | Lifetime metadata |
-| `0x828000` | Bounds-check metadata |
-| `0x829000` | Memory safety metadata |
-| `0x833000` | Constant metadata |
-| `0x834000` | Debug metadata |
-| `0x835000` | Symbol names |
-| `0x836000` | Source mapping information |
-
----
-
-# Suggested Future Memory Layout
-
-```text
-0x400000
-│
-├── ELF header
-├── program header
-├── generated code
-├── runtime code
-└── generated strings
-│
-│
-0x800000
-│
-├── compiler state
-│
-├── 0x800100 token metadata
-├── 0x800400 parameter scratch
-│
-├── 0x801000 token 0 buffer
-├── 0x801100 future token buffer
-├── 0x801200 token 1 buffer
-│
-├── 0x810000 function table
-├── 0x811000 future function metadata
-│
-├── 0x812000 unresolved calls
-├── 0x81A000 future relocations
-├── 0x81B000 future references
-├── 0x81C000 future patches
-│
-├── 0x820000 variable table
-│
-├── 0x824000 future type metadata
-├── 0x825000 future ownership metadata
-├── 0x826000 future borrow checker
-├── 0x827000 future lifetime metadata
-├── 0x828000 future bounds metadata
-├── 0x829000 future memory safety metadata
-│
-├── 0x830000 string metadata
-├── 0x833000 future constants
-├── 0x834000 future debug metadata
-├── 0x835000 future symbols
-├── 0x836000 future source maps
-│
-└── 0x840000 dynamic string/data pool
-        |
-        v
-     0x8FFFFF
-
-0x900000
-    outside current fixed mapping
+JIT  0xC00000 - 0xC3FFFF
+AOT  0xD00000 - 0xD3FFFF
 ```
 
 ---
 
-# Quick Reference
+# 5. Addresses worth memorizing
 
-```text
-0x000000  NULL
-
-0x400000  ELF base
-0x400040  program header
-0x400078  generated payload
-
-0x800000  compiler state
-0x800100  token metadata
-0x800400  parameter scratch
-
-0x801000  token 0 text
-0x801200  token 1 text
-
-0x810000  functions
-0x811000  FREE
-
-0x812000  unresolved calls
-0x81A000  FREE
-
-0x820000  variables
-0x824000  FREE
-
-0x830000  strings
-0x833000  FREE
-
-0x840000  dynamic data pool
-
-0x900000  outside mapping
-```
+<table>
+  <tr><th>Address</th><th>Meaning</th></tr>
+  <tr><td><code>0x000000</code></td><td>NULL / bottom of address space</td></tr>
+  <tr><td><code>0x7C00</code></td><td>BIOS stage 1</td></tr>
+  <tr><td><code>0x8000</code></td><td>stage 2</td></tr>
+  <tr><td><code>0x90000</code></td><td>bootstrap stack top</td></tr>
+  <tr><td><code>0xA0000</code></td><td>VGA graphics memory</td></tr>
+  <tr><td><code>0x100000</code></td><td>kernel</td></tr>
+  <tr><td><code>0x120000</code></td><td>heap start</td></tr>
+  <tr><td><code>0x180000</code></td><td>kernel state begins</td></tr>
+  <tr><td><code>0x1FF000</code></td><td>ABI table</td></tr>
+  <tr><td><code>0x400000</code></td><td>OS program base / Linux MicroC ELF base</td></tr>
+  <tr><td><code>0x500000</code></td><td>editor buffer</td></tr>
+  <tr><td><code>0x800000</code></td><td>Linux-side MicroC compiler workspace</td></tr>
+  <tr><td><code>0xA00000</code></td><td>OS ABI file buffer</td></tr>
+  <tr><td><code>0xC00000</code></td><td>OS compiler JIT buffer</td></tr>
+  <tr><td><code>0xD00000</code></td><td>OS compiler AOT buffer</td></tr>
+</table>
 
 ---
 
-# Address Rules
+# 6. Rules before adding a new fixed address
 
-1. Check this file before assigning a new fixed address.
-2. Never overlap an existing compiler region.
-3. Prefer page-aligned addresses for large structures.
-4. Keep compiler state separate from generated code.
-5. Keep fixed tables below the dynamic pool.
-6. Do not assume memory above `0x8FFFFF` is mapped.
-7. Update this file whenever the memory layout changes.
-8. Give every important memory region one clear purpose.
-9. Add bounds checks before allowing a table to grow into another region.
-10. Never hardcode a new address without documenting why it exists.
+1. Search this file first.
+2. Check the actual source before trusting an old diagram.
+3. Do not overlap boot, kernel, ABI, program, editor, compiler, or framebuffer regions.
+4. Prefer page-aligned addresses for large structures.
+5. Give buffers an explicit maximum size when possible.
+6. Put a guard between regions that can grow.
+7. Keep compiler workspace separate from generated code.
+8. Update this map in the same commit that changes the address.
+9. Never assume a region is writable just because its numeric address looks unused.
+10. For OS code, remember that mapping and physical placement are separate questions once higher-half or non-identity mappings are introduced.
