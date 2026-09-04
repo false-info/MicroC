@@ -1475,8 +1475,6 @@ head(custom) {
         mem_write64(ALTGR_ADDR(), 0)
         mem_write64(CAPS_ADDR(), 0)
 
-        // Swedish is the default because SuperNovaOS is being developed
-        // on a Swedish keyboard. Use: keylayout eng
         mem_write64(KEY_LAYOUT_ADDR(), 1)
 
         while ((port_in8(0x64) & 1) != 0) {
@@ -1851,6 +1849,7 @@ head(custom) {
                     if (code == 14) { return 8 }
 
                     if (code == 60) { return 260 }
+                    if (code == 62) { return 266 }
                     if (code == 63) { return 261 }
                     if (code == 64) { return 262 }
 
@@ -4247,6 +4246,8 @@ head(custom) {
         I64 cursor = 0
         I64 running = 1
         I64 dirty = 0
+        I64 goto_mode = 0
+        I64 goto_line = 0
 
         editor_cache_reset()
 
@@ -4273,6 +4274,12 @@ head(custom) {
                         dirty = 0
                     }
                 } else {
+                    if (key == 266) {
+                        goto_mode = 1
+                        goto_line = 0
+                    }
+                }
+                     else {
                     if (key == 261) {
                         if (editor_save(
                             EDITOR_BUFFER(),
@@ -4494,7 +4501,7 @@ head(custom) {
         terminal_set_color(13)
         terminal_writeln("SuperNovaOS Help")
         terminal_set_color(7)
-        terminal_writeln("============================================================")
+        terminal_writeln("-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-")
         terminal_set_color(15)
 
         terminal_writeln("Files")
@@ -4523,7 +4530,7 @@ head(custom) {
         terminal_set_color(7)
         terminal_writeln("  edit kernel.mc        Edit the SuperNovaOS kernel")
         terminal_writeln("  edit compiler.mc      Edit the MicroC compiler")
-        terminal_writeln("  F2 Save   F5 Run/Build   F6 Build   Esc Exit")
+        terminal_writeln("  F2 Save  F4 go to line   F5 Run/Build    F6 Build  Esc Exit")
         terminal_writeln("")
         terminal_set_color(15)
 
@@ -4818,11 +4825,11 @@ head(custom) {
 
     fn shell_banner() {
         terminal_set_color(13)
-        terminal_writeln("SuperNovaOS 0.7")
+        terminal_writeln("SuperNovaOS 0.8")
         terminal_set_color(15)
-        terminal_writeln("MicroC native development environment")
+        terminal_writeln("-_-_-_-_-_-_-_-")
         terminal_set_color(7)
-        terminal_writeln("Type help for commands. Keyboard layout: swe")
+        terminal_writeln("Type help for commands\nKeyboard layout: swe")
         terminal_set_color(15)
         terminal_writeln("")
         return 0
