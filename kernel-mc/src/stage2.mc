@@ -269,7 +269,10 @@ head(asm-x86-16 asm-x86-32 asm-x86-64) {
         dq(0x00AF9A000000FFFF)
 
         label(gdt_descriptor)
+				dw(31)
+				dd(gdt_start)
 
+				pad_to(8192)
         dw(31)
         dd(gdt_start)
     } (asme)
