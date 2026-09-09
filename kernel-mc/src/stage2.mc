@@ -44,6 +44,34 @@ head(asm-x86-16 asm-x86-32 asm-x86-64) {
         pop(dx)
         jc(disk_error)
 
+        push(dx)
+        mov(si, kernel_dap_3)
+        mov(ah, 0x42)
+        int(0x13)
+        pop(dx)
+        jc(disk_error)
+
+        push(dx)
+        mov(si, kernel_dap_4)
+        mov(ah, 0x42)
+        int(0x13)
+        pop(dx)
+        jc(disk_error)
+
+        push(dx)
+        mov(si, kernel_dap_5)
+        mov(ah, 0x42)
+        int(0x13)
+        pop(dx)
+        jc(disk_error)
+
+        push(dx)
+        mov(si, kernel_dap_6)
+        mov(ah, 0x42)
+        int(0x13)
+        pop(dx)
+        jc(disk_error)
+
         mov(ax, 0x0012)
         int(0x10)
 
@@ -92,7 +120,7 @@ head(asm-x86-16 asm-x86-32 asm-x86-64) {
 
         rep_movsb
 
-        mov(esi, 0x00020000)
+        mov(esi, 0x0001C000)
         mov(edi, 0x0010C000)
         mov(ecx, 49152)
 
@@ -158,7 +186,7 @@ head(asm-x86-16 asm-x86-32 asm-x86-64) {
         db(0x10)
         db(0x00)
 
-        dw(96)
+        dw(32)
 
         dw(0x0000)
         dw(0x1000)
@@ -171,12 +199,64 @@ head(asm-x86-16 asm-x86-32 asm-x86-64) {
         db(0x10)
         db(0x00)
 
-        dw(96)
+        dw(32)
+
+        dw(0x0000)
+        dw(0x1400)
+
+        dd(49)
+        dd(0)
+
+        label(kernel_dap_3)
+
+        db(0x10)
+        db(0x00)
+
+        dw(32)
+
+        dw(0x0000)
+        dw(0x1800)
+
+        dd(81)
+        dd(0)
+
+        label(kernel_dap_4)
+
+        db(0x10)
+        db(0x00)
+
+        dw(32)
+
+        dw(0x0000)
+        dw(0x1C00)
+
+        dd(113)
+        dd(0)
+
+        label(kernel_dap_5)
+
+        db(0x10)
+        db(0x00)
+
+        dw(32)
 
         dw(0x0000)
         dw(0x2000)
 
-        dd(113)
+        dd(145)
+        dd(0)
+
+        label(kernel_dap_6)
+
+        db(0x10)
+        db(0x00)
+
+        dw(32)
+
+        dw(0x0000)
+        dw(0x2400)
+
+        dd(177)
         dd(0)
 
         align(8)
