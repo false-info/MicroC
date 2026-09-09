@@ -13,11 +13,12 @@ head(asm-x86-16) {
         cld
 
         push(dx)
-        mov(si, stage2_dap)
-        pop(dx)
 
+        mov(si, stage2_dap)
         mov(ah, 0x42)
         int(0x13)
+
+        pop(dx)
         jc(disk_error)
 
         jmp_far(0x0000, 0x8000)
