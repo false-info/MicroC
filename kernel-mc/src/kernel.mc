@@ -99,7 +99,6 @@ head(custom) {
         return 0x53464E53
     }
 
-
     fn FS_VERSION() {
         return 2
     }
@@ -645,411 +644,109 @@ head(custom) {
         }
         return 0
     }
-    
+
     fn glyph(I64 ch) {
-        if (ch == 32) {
-            return 0x00000000000000
-        }
-
-        if (ch == 33) {
-            return 0x04000404040404
-        }
-
-        if (ch == 34) {
-            return 0x000000000A0A0A
-        }
-
-        if (ch == 35) {
-            return 0x000A1F0A0A1F0A
-        }
-
-        if (ch == 36) {
-            return 0x041E050E140F04
-        }
-
-        if (ch == 37) {
-            return 0x00061608041A19
-        }
-
-        if (ch == 38) {
-            return 0x0D12150814120C
-        }
-
-        if (ch == 39) {
-            return 0x00000000080404
-        }
-
-        if (ch == 40) {
-            return 0x02040808080402
-        }
-
-        if (ch == 41) {
-            return 0x08040202020408
-        }
-
-        if (ch == 42) {
-            return 0x00150E1F0E1500
-        }
-
-        if (ch == 43) {
-            return 0x0004041F040400
-        }
-
-        if (ch == 44) {
-            return 0x08040600000000
-        }
-
-        if (ch == 45) {
-            return 0x0000001F000000
-        }
-
-        if (ch == 46) {
-            return 0x06060000000000
-        }
-
-        if (ch == 47) {
-            return 0x00001008040201
-        }
-
-        if (ch == 48) {
-            return 0x0E11191513110E
-        }
-
-        if (ch == 49) {
-            return 0x0E040404040C04
-        }
-
-        if (ch == 50) {
-            return 0x1F08040201110E
-        }
-
-        if (ch == 51) {
-            return 0x1E01010E01011E
-        }
-
-        if (ch == 52) {
-            return 0x02021F120A0602
-        }
-
-        if (ch == 53) {
-            return 0x1E01011E10101F
-        }
-
-        if (ch == 54) {
-            return 0x0E11111E10100E
-        }
-
-        if (ch == 55) {
-            return 0x0808080402011F
-        }
-
-        if (ch == 56) {
-            return 0x0E11110E11110E
-        }
-
-        if (ch == 57) {
-            return 0x0E01010F11110E
-        }
-
-        if (ch == 58) {
-            return 0x00060600060600
-        }
-
-        if (ch == 59) {
-            return 0x08040600060600
-        }
-
-        if (ch == 60) {
-            return 0x02040810080402
-        }
-
-        if (ch == 61) {
-            return 0x00001F001F0000
-        }
-
-        if (ch == 62) {
-            return 0x08040201020408
-        }
-
-        if (ch == 63) {
-            return 0x0400040201110E
-        }
-
-        if (ch == 64) {
-            return 0x0E10171517110E
-        }
-
-        if (ch == 65) {
-            return 0x1111111F11110E
-        }
-
-        if (ch == 66) {
-            return 0x1E11111E11111E
-        }
-
-        if (ch == 67) {
-            return 0x0F10101010100F
-        }
-
-        if (ch == 68) {
-            return 0x1E11111111111E
-        }
-
-        if (ch == 69) {
-            return 0x1F10101E10101F
-        }
-
-        if (ch == 70) {
-            return 0x1010101E10101F
-        }
-
-        if (ch == 71) {
-            return 0x0E11111710110E
-        }
-
-        if (ch == 72) {
-            return 0x1111111F111111
-        }
-
-        if (ch == 73) {
-            return 0x1F04040404041F
-        }
-
-        if (ch == 74) {
-            return 0x0C120202020207
-        }
-
-        if (ch == 75) {
-            return 0x11121418141211
-        }
-
-        if (ch == 76) {
-            return 0x1F101010101010
-        }
-
-        if (ch == 77) {
-            return 0x11111115151B11
-        }
-
-        if (ch == 78) {
-            return 0x11111113151911
-        }
-
-        if (ch == 79) {
-            return 0x0E11111111110E
-        }
-
-        if (ch == 80) {
-            return 0x1010101E11111E
-        }
-
-        if (ch == 81) {
-            return 0x0D12151111110E
-        }
-
-        if (ch == 82) {
-            return 0x1112141E11111E
-        }
-
-        if (ch == 83) {
-            return 0x1E01010E10100F
-        }
-
-        if (ch == 84) {
-            return 0x0404040404041F
-        }
-
-        if (ch == 85) {
-            return 0x0E111111111111
-        }
-
-        if (ch == 86) {
-            return 0x040A1111111111
-        }
-
-        if (ch == 87) {
-            return 0x0A151515111111
-        }
-
-        if (ch == 88) {
-            return 0x11110A040A1111
-        }
-
-        if (ch == 89) {
-            return 0x040404040A1111
-        }
-
-        if (ch == 90) {
-            return 0x1F10080402011F
-        }
-
-        if (ch == 91) {
-            return 0x0E08080808080E
-        }
-
-        if (ch == 92) {
-            return 0x00000102040810
-        }
-
-        if (ch == 93) {
-            return 0x0E02020202020E
-        }
-
-        if (ch == 94) {
-            return 0x00000000110A04
-        }
-
-        if (ch == 95) {
-            return 0x1F000000000000
-        }
-
-        if (ch == 96) {
-            return 0x00000000020408
-        }
-
-        if (ch == 97) {
-            return 0x0F110F010E0000
-        }
-
-        if (ch == 98) {
-            return 0x1E111119161010
-        }
-
-        if (ch == 99) {
-            return 0x0F1010100F0000
-        }
-
-        if (ch == 100) {
-            return 0x0F1111130D0101
-        }
-
-        if (ch == 101) {
-            return 0x0F101F110E0000
-        }
-
-        if (ch == 102) {
-            return 0x0808081C080906
-        }
-
-        if (ch == 103) {
-            return 0x0E010F110F0000
-        }
-
-        if (ch == 104) {
-            return 0x11111119161010
-        }
-
-        if (ch == 105) {
-            return 0x0E0404040C0004
-        }
-
-        if (ch == 106) {
-            return 0x0C120202060002
-        }
-
-        if (ch == 107) {
-            return 0x12141814121010
-        }
-
-        if (ch == 108) {
-            return 0x0E04040404040C
-        }
-
-        if (ch == 109) {
-            return 0x151515151A0000
-        }
-
-        if (ch == 110) {
-            return 0x11111119160000
-        }
-
-        if (ch == 111) {
-            return 0x0E1111110E0000
-        }
-
-        if (ch == 112) {
-            return 0x10101E111E0000
-        }
-
-        if (ch == 113) {
-            return 0x01010F130D0000
-        }
-
-        if (ch == 114) {
-            return 0x10101019160000
-        }
-
-        if (ch == 115) {
-            return 0x1E010E100F0000
-        }
-
-        if (ch == 116) {
-            return 0x060908081C0808
-        }
-
-        if (ch == 117) {
-            return 0x0D131111110000
-        }
-
-        if (ch == 118) {
-            return 0x040A1111110000
-        }
-
-        if (ch == 119) {
-            return 0x0A151515110000
-        }
-
-        if (ch == 120) {
-            return 0x110A040A110000
-        }
-
-        if (ch == 121) {
-            return 0x0E010F11110000
-        }
-
-        if (ch == 122) {
-            return 0x1F0804021F0000
-        }
-
-        if (ch == 123) {
-            return 0x02040408040402
-        }
-
-        if (ch == 124) {
-            return 0x04040404040404
-        }
-
-        if (ch == 125) {
-            return 0x08040402040408
-        }
-
-        if (ch == 126) {
-            return 0x00000016090000
-        }
-
-        if (ch == 196) {
-            return 0x11111F110E000A
-        }
-
-        if (ch == 197) {
-            return 0x1111111F110E04
-        }
-
-        if (ch == 214) {
-            return 0x0E1111110E000A
-        }
-
-        if (ch == 228) {
-            return 0x0F110F010E000A
-        }
-
-        if (ch == 229) {
-            return 0x0F11110F010E04
-        }
-
-        if (ch == 246) {
-            return 0x0E1111110E000A
-        }
+        if (ch == 32) { return 0x00000000000000 }
+        if (ch == 33) { return 0x04000404040404 }
+        if (ch == 34) { return 0x000000000A0A0A }
+        if (ch == 35) { return 0x000A1F0A0A1F0A }
+        if (ch == 36) { return 0x041E050E140F04 }
+        if (ch == 37) { return 0x00061608041A19 }
+        if (ch == 38) { return 0x0D12150814120C }
+        if (ch == 39) { return 0x00000000080404 }
+        if (ch == 40) { return 0x02040808080402 }
+        if (ch == 41) { return 0x08040202020408 }
+        if (ch == 42) { return 0x00150E1F0E1500 }
+        if (ch == 43) { return 0x0004041F040400 }
+        if (ch == 44) { return 0x08040600000000 }
+        if (ch == 45) { return 0x0000001F000000 }
+        if (ch == 46) { return 0x06060000000000 }
+        if (ch == 47) { return 0x00001008040201 }
+        if (ch == 48) { return 0x0E11191513110E }
+        if (ch == 49) { return 0x0E040404040C04 }
+        if (ch == 50) { return 0x1F08040201110E }
+        if (ch == 51) { return 0x1E01010E01011E }
+        if (ch == 52) { return 0x02021F120A0602 }
+        if (ch == 53) { return 0x1E01011E10101F }
+        if (ch == 54) { return 0x0E11111E10100E }
+        if (ch == 55) { return 0x0808080402011F }
+        if (ch == 56) { return 0x0E11110E11110E }
+        if (ch == 57) { return 0x0E01010F11110E }
+        if (ch == 58) { return 0x00060600060600 }
+        if (ch == 59) { return 0x08040600060600 }
+        if (ch == 60) { return 0x02040810080402 }
+        if (ch == 61) { return 0x00001F001F0000 }
+        if (ch == 62) { return 0x08040201020408 }
+        if (ch == 63) { return 0x0400040201110E }
+        if (ch == 64) { return 0x0E10171517110E }
+        if (ch == 65) { return 0x1111111F11110E }
+        if (ch == 66) { return 0x1E11111E11111E }
+        if (ch == 67) { return 0x0F10101010100F }
+        if (ch == 68) { return 0x1E11111111111E }
+        if (ch == 69) { return 0x1F10101E10101F }
+        if (ch == 70) { return 0x1010101E10101F }
+        if (ch == 71) { return 0x0E11111710110E }
+        if (ch == 72) { return 0x1111111F111111 }
+        if (ch == 73) { return 0x1F04040404041F }
+        if (ch == 74) { return 0x0C120202020207 }
+        if (ch == 75) { return 0x11121418141211 }
+        if (ch == 76) { return 0x1F101010101010 }
+        if (ch == 77) { return 0x11111115151B11 }
+        if (ch == 78) { return 0x11111113151911 }
+        if (ch == 79) { return 0x0E11111111110E }
+        if (ch == 80) { return 0x1010101E11111E }
+        if (ch == 81) { return 0x0D12151111110E }
+        if (ch == 82) { return 0x1112141E11111E }
+        if (ch == 83) { return 0x1E01010E10100F }
+        if (ch == 84) { return 0x0404040404041F }
+        if (ch == 85) { return 0x0E111111111111 }
+        if (ch == 86) { return 0x040A1111111111 }
+        if (ch == 87) { return 0x0A151515111111 }
+        if (ch == 88) { return 0x11110A040A1111 }
+        if (ch == 89) { return 0x040404040A1111 }
+        if (ch == 90) { return 0x1F10080402011F }
+        if (ch == 91) { return 0x0E08080808080E }
+        if (ch == 92) { return 0x00000102040810 }
+        if (ch == 93) { return 0x0E02020202020E }
+        if (ch == 94) { return 0x00000000110A04 }
+        if (ch == 95) { return 0x1F000000000000 }
+        if (ch == 96) { return 0x00000000020408 }
+        if (ch == 97) { return 0x0F110F010E0000 }
+        if (ch == 98) { return 0x1E111119161010 }
+        if (ch == 99) { return 0x0F1010100F0000 }
+        if (ch == 100) { return 0x0F1111130D0101 }
+        if (ch == 101) { return 0x0F101F110E0000 }
+        if (ch == 102) { return 0x0808081C080906 }
+        if (ch == 103) { return 0x0E010F110F0000 }
+        if (ch == 104) { return 0x11111119161010 }
+        if (ch == 105) { return 0x0E0404040C0004 }
+        if (ch == 106) { return 0x0C120202060002 }
+        if (ch == 107) { return 0x12141814121010 }
+        if (ch == 108) { return 0x0E04040404040C }
+        if (ch == 109) { return 0x151515151A0000 }
+        if (ch == 110) { return 0x11111119160000 }
+        if (ch == 111) { return 0x0E1111110E0000 }
+        if (ch == 112) { return 0x10101E111E0000 }
+        if (ch == 113) { return 0x01010F130D0000 }
+        if (ch == 114) { return 0x10101019160000 }
+        if (ch == 115) { return 0x1E010E100F0000 }
+        if (ch == 116) { return 0x060908081C0808 }
+        if (ch == 117) { return 0x0D131111110000 }
+        if (ch == 118) { return 0x040A1111110000 }
+        if (ch == 119) { return 0x0A151515110000 }
+        if (ch == 120) { return 0x110A040A110000 }
+        if (ch == 121) { return 0x0E010F11110000 }
+        if (ch == 122) { return 0x1F0804021F0000 }
+        if (ch == 123) { return 0x02040408040402 }
+        if (ch == 124) { return 0x04040404040404 }
+        if (ch == 125) { return 0x08040402040408 }
+        if (ch == 126) { return 0x00000016090000 }
+        if (ch == 196) { return 0x11111F110E000A }
+        if (ch == 197) { return 0x1111111F110E04 }
+        if (ch == 214) { return 0x0E1111110E000A }
+        if (ch == 228) { return 0x0F110F010E000A }
+        if (ch == 229) { return 0x0F11110F010E04 }
+        if (ch == 246) { return 0x0E1111110E000A }
 
         return 0x0400040201110E
     }
@@ -1161,9 +858,11 @@ head(custom) {
     fn terminal_col() {
         return mem_read64(TERM_COL_ADDR())
     }
+
     fn terminal_row() {
         return mem_read64(TERM_ROW_ADDR())
     }
+
     fn terminal_color() {
         return mem_read64(TERM_COLOR_ADDR())
     }
@@ -1183,7 +882,8 @@ head(custom) {
         fill_rect(0, 0, 640, 20, 5)
         fill_rect(0, 20, 640, 2, 13)
 
-        draw_text(8, 6, "SuperNovaOS", 15, 1)
+        draw_text(8, 6, "SuperNovaOS 0.7", 15, 1)
+        draw_text(128, 6, "MicroC Workbench", 7, 1)
 
         if (keyboard_layout() == 1) {
             draw_text(584, 6, "SWE", 15, 1)
@@ -1234,15 +934,12 @@ head(custom) {
         terminal_chrome()
 
         I64 r = 0
+
         while (r < TERM_ROWS()) {
             I64 c = 0
 
             while (c < TERM_COLS()) {
-                terminal_draw_cell(
-                    r,
-                    c
-                )
-
+                terminal_draw_cell(r,c)
                 c = c + 1
             }
 
@@ -1259,10 +956,7 @@ head(custom) {
             I64 c = 0
 
             while (c < TERM_COLS()) {
-                I64 src = terminal_cell(
-                    r,
-                    c
-                )
+                I64 src = terminal_cell(r,c)
 
                 terminal_store(
                     r - 1,
@@ -1277,10 +971,7 @@ head(custom) {
             r = r + 1
         }
 
-        gc_write(
-            5,
-            1
-        )
+        gc_write(5,1)
 
         I64 py = 0
 
@@ -1290,25 +981,15 @@ head(custom) {
             I64 b = 0
 
             while (b < 75) {
-                mem_read8(
-                    source + b
-                )
-
-                mem_write8(
-                    dest + b,
-                    0
-                )
-
+                mem_read8(source + b)
+                mem_write8(dest + b,0)
                 b = b + 1
             }
 
             py = py + 1
         }
 
-        gc_write(
-            5,
-            0
-        )
+        gc_write(5,0)
 
         I64 c2 = 0
 
@@ -1364,6 +1045,7 @@ head(custom) {
         if (ch == 10) {
             return terminal_newline()
         }
+
         if (ch == 8) {
             return terminal_backspace()
         }
@@ -1380,15 +1062,18 @@ head(custom) {
         } else {
             terminal_set_cursor(c,r)
         }
+
         return 0
     }
 
     fn terminal_write(I64 text) {
         I64 i = 0
+
         while (mem_read8(text+i) != 0) {
             terminal_putchar(mem_read8(text+i))
             i = i + 1
         }
+
         return i
     }
 
@@ -1417,21 +1102,26 @@ head(custom) {
             n = n - 1
             terminal_putchar(mem_read8(p+n))
         }
+
         return 0
     }
 
     fn terminal_write_hex(I64 value) {
         terminal_write("0x")
         I64 shift = 60
+
         while (shift >= 0) {
             I64 d = (value >> shift) & 15
+
             if (d < 10) {
                 terminal_putchar(48+d)
             } else {
                 terminal_putchar(55+d)
             }
+
             shift = shift - 4
         }
+
         return 0
     }
 
@@ -1474,7 +1164,6 @@ head(custom) {
         mem_write64(EXTENDED_ADDR(), 0)
         mem_write64(ALTGR_ADDR(), 0)
         mem_write64(CAPS_ADDR(), 0)
-
         mem_write64(KEY_LAYOUT_ADDR(), 1)
 
         while ((port_in8(0x64) & 1) != 0) {
@@ -1937,29 +1626,36 @@ head(custom) {
     fn heap_blocks_for(I64 size) {
         I64 total = size + 8
         I64 blocks = total / HEAP_BLOCK_SIZE()
+
         if ((total % HEAP_BLOCK_SIZE()) != 0) {
             blocks = blocks + 1
         }
+
         return blocks
     }
 
     fn heap_run_free(I64 start, I64 count) {
         I64 i = 0
+
         while (i < count) {
             if (mem_read8(HEAP_BITMAP()+start+i) != 0) {
                 return 0
             }
+
             i = i + 1
         }
+
         return 1
     }
 
     fn heap_mark(I64 start, I64 count, I64 value) {
         I64 i = 0
+
         while (i < count) {
             mem_write8(HEAP_BITMAP()+start+i,value)
             i = i + 1
         }
+
         return 0
     }
 
@@ -1967,6 +1663,7 @@ head(custom) {
         if (size <= 0) {
             return 0
         }
+
         if (mem_read64(HEAP_READY_ADDR()) == 0) {
             heap_init()
         }
@@ -1981,17 +1678,21 @@ head(custom) {
                 mem_write64(base,need)
                 return base+8
             }
+
             i = i + 1
         }
+
         return 0
     }
 
     fn kcalloc(I64 count, I64 size) {
         I64 total = count*size
         I64 p = kmalloc(total)
+
         if (p != 0) {
             mem_set(p,0,total)
         }
+
         return p
     }
 
@@ -2001,9 +1702,11 @@ head(custom) {
         }
 
         I64 base = ptr-8
+
         if (base < HEAP_START()) {
             return 0
         }
+
         if (base >= HEAP_END()) {
             return 0
         }
@@ -2014,6 +1717,7 @@ head(custom) {
         if (blocks <= 0) {
             return 0
         }
+
         if (index+blocks > HEAP_BLOCKS()) {
             return 0
         }
@@ -2027,6 +1731,7 @@ head(custom) {
         if (ptr == 0) {
             return kmalloc(size)
         }
+
         if (size == 0) {
             kfree(ptr)
             return 0
@@ -2035,6 +1740,7 @@ head(custom) {
         I64 old_blocks = mem_read64(ptr-8)
         I64 old_size = old_blocks*HEAP_BLOCK_SIZE()-8
         I64 np = kmalloc(size)
+
         if (np == 0) {
             return 0
         }
@@ -2047,12 +1753,15 @@ head(custom) {
     fn heap_free_bytes() {
         I64 free = 0
         I64 i = 0
+
         while (i < HEAP_BLOCKS()) {
             if (mem_read8(HEAP_BITMAP()+i) == 0) {
                 free = free + HEAP_BLOCK_SIZE()
             }
+
             i = i + 1
         }
+
         return free
     }
 
@@ -2062,32 +1771,41 @@ head(custom) {
 
     fn ata_wait_not_busy() {
         I64 timeout = 1000000
+
         while (timeout > 0) {
             if ((ata_status() & 0x80) == 0) {
                 return 1
             }
+
             timeout = timeout - 1
             cpu_pause()
         }
+
         return 0
     }
 
     fn ata_wait_drq() {
         I64 timeout = 1000000
+
         while (timeout > 0) {
             I64 s = ata_status()
+
             if ((s & 1) != 0) {
                 return 0
             }
+
             if ((s & 0x20) != 0) {
                 return 0
             }
+
             if ((s & 0x08) != 0) {
                 return 1
             }
+
             timeout = timeout - 1
             cpu_pause()
         }
+
         return 0
     }
 
@@ -2107,15 +1825,18 @@ head(custom) {
 
         ata_select_lba(lba)
         port_out8(0x1F7,0x20)
+
         if (ata_wait_drq() == 0) {
             return 0
         }
 
         I64 i = 0
+
         while (i < 256) {
             mem_write16(buffer+i*2,port_in16(0x1F0))
             i = i + 1
         }
+
         return 1
     }
 
@@ -2126,11 +1847,13 @@ head(custom) {
 
         ata_select_lba(lba)
         port_out8(0x1F7,0x30)
+
         if (ata_wait_drq() == 0) {
             return 0
         }
 
         I64 i = 0
+
         while (i < 256) {
             port_out16(0x1F0,mem_read16(buffer+i*2))
             i = i + 1
@@ -2142,23 +1865,29 @@ head(custom) {
 
     fn ata_read(I64 lba, I64 sectors, I64 buffer) {
         I64 i = 0
+
         while (i < sectors) {
             if (ata_read_sector(lba+i,buffer+i*512) == 0) {
                 return 0
             }
+
             i = i + 1
         }
+
         return 1
     }
 
     fn ata_write(I64 lba, I64 sectors, I64 buffer) {
         I64 i = 0
+
         while (i < sectors) {
             if (ata_write_sector(lba+i,buffer+i*512) == 0) {
                 return 0
             }
+
             i = i + 1
         }
+
         return 1
     }
 
@@ -2288,25 +2017,31 @@ head(custom) {
         }
 
         I64 i = 0
+
         while (i < FS_MAX_FILES()) {
             if (fs_entry_used(i) != 0) {
                 if (str_eq(fs_entry_name(i),path) != 0) {
                     return i
                 }
             }
+
             i = i + 1
         }
+
         return 0-1
     }
 
     fn fs_find_free() {
         I64 i = 0
+
         while (i < FS_MAX_FILES()) {
             if (fs_entry_used(i) == 0) {
                 return i
             }
+
             i = i + 1
         }
+
         return 0-1
     }
 
@@ -2314,16 +2049,19 @@ head(custom) {
         if (fs_formatted() == 0) {
             return 0
         }
+
         if (fs_find(path) >= 0) {
             return 0
         }
 
         I64 index = fs_find_free()
+
         if (index < 0) {
             return 0
         }
 
         I64 e = fs_entry(index)
+
         mem_set(e,0,FS_ENTRY_SIZE())
         mem_write8(e,1)
         str_copy_limit(e+1,path,31)
@@ -2338,6 +2076,7 @@ head(custom) {
         }
 
         I64 index = fs_find(path)
+
         if (index < 0) {
             return 0
         }
@@ -2350,36 +2089,45 @@ head(custom) {
         if (size > FS_MAX_SIZE()) {
             return 0
         }
+
         if (fs_formatted() == 0) {
             return 0
         }
 
         I64 index = fs_find(path)
+
         if (index < 0) {
             if (fs_create(path) == 0) {
                 return 0
             }
+
             index = fs_find(path)
+
             if (index < 0) {
                 return 0
             }
         }
 
         I64 sectors = size/512
+
         if ((size%512) != 0) {
             sectors = sectors + 1
         }
 
         I64 i = 0
+
         while (i < sectors) {
             mem_set(SECTOR_BUFFER(),0,512)
+
             I64 off = i*512
             I64 take = min64(size-off,512)
+
             mem_copy(SECTOR_BUFFER(),buffer+off,take)
 
             if (ata_write_sector(fs_entry_lba(index)+i,SECTOR_BUFFER()) == 0) {
                 return 0
             }
+
             i = i + 1
         }
 
@@ -2394,17 +2142,20 @@ head(custom) {
         }
 
         I64 index = fs_find(path)
+
         if (index < 0) {
             return 0-1
         }
 
         I64 size = min64(fs_entry_file_size(index),max)
         I64 sectors = size/512
+
         if ((size%512) != 0) {
             sectors = sectors + 1
         }
 
         I64 i = 0
+
         while (i < sectors) {
             if (ata_read_sector(fs_entry_lba(index)+i,SECTOR_BUFFER()) == 0) {
                 return 0-1
@@ -2412,9 +2163,11 @@ head(custom) {
 
             I64 off = i*512
             I64 take = min64(size-off,512)
+
             mem_copy(buffer+off,SECTOR_BUFFER(),take)
             i = i + 1
         }
+
         return size
     }
 
@@ -2429,6 +2182,7 @@ head(custom) {
         }
 
         fs_load_dir()
+
         I64 found = 0
         I64 i = 0
 
@@ -2442,18 +2196,21 @@ head(custom) {
                 terminal_writeln(" bytes")
                 found = found + 1
             }
+
             i = i + 1
         }
 
         if (found == 0) {
             terminal_writeln("(empty)")
         }
+
         terminal_set_color(15)
         return found
     }
 
     fn fs_cat(I64 path) {
         I64 n = fs_read_file(path,FILE_BUFFER(),FS_MAX_SIZE()-1)
+
         if (n < 0) {
             terminal_writeln("file not found")
             return 0
@@ -2462,6 +2219,7 @@ head(custom) {
         mem_write8(FILE_BUFFER()+n,0)
         terminal_write(FILE_BUFFER())
         terminal_putchar(10)
+
         return 1
     }
 
@@ -2499,6 +2257,7 @@ head(custom) {
         while (1 == 1) {
             cpu_hlt()
         }
+
         return 0
     }
 
@@ -2575,6 +2334,7 @@ head(custom) {
         }
 
         I64 sectors = size / 512
+
         if ((size % 512) != 0) {
             sectors = sectors + 1
         }
@@ -2666,7 +2426,6 @@ head(custom) {
         return 1
     }
 
-
     fn panic(I64 text) {
         cpu_cli()
         terminal_set_color(12)
@@ -2678,9 +2437,9 @@ head(custom) {
         while (1 == 1) {
             cpu_hlt()
         }
+
         return 0
     }
-
 
     fn terminal_write_n(I64 text, I64 length) {
         I64 index = 0
@@ -3378,6 +3137,7 @@ head(custom) {
 
         while (index > 0) {
             index = index - 1
+
             draw_char(
                 x + (count - index - 1) * 6,
                 y,
@@ -3417,6 +3177,7 @@ head(custom) {
 
         size = size - 1
         mem_write8(buffer + size, 0)
+
         return size
     }
 
@@ -3685,6 +3446,81 @@ head(custom) {
         return 0
     }
 
+    fn editor_scrollbar(I64 buffer, I64 size, I64 cursor) {
+        I64 track_x = 636
+        I64 track_y = 26
+        I64 track_width = 4
+        I64 track_height = 432
+
+        fill_rect(
+            track_x,
+            track_y,
+            track_width,
+            track_height,
+            8
+        )
+
+        I64 total_lines = editor_line_number(
+            buffer,
+            size
+        ) + 1
+
+        if (total_lines <= 54) {
+            fill_rect(
+                track_x + 1,
+                track_y + 1,
+                2,
+                track_height - 2,
+                13
+            )
+
+            return 0
+        }
+
+        I64 thumb_height = (track_height * 54) / total_lines
+
+        if (thumb_height < 12) {
+            thumb_height = 12
+        }
+
+        if (thumb_height > track_height) {
+            thumb_height = track_height
+        }
+
+        I64 cursor_line = editor_line_number(
+            buffer,
+            cursor
+        )
+
+        I64 top_line = 0
+
+        if (cursor_line > 48) {
+            top_line = cursor_line - 48
+        }
+
+        I64 max_top = total_lines - 54
+
+        if (top_line > max_top) {
+            top_line = max_top
+        }
+
+        I64 thumb_y = track_y
+
+        if (max_top > 0) {
+            thumb_y = track_y + ((track_height - thumb_height) * top_line) / max_top
+        }
+
+        fill_rect(
+            track_x + 1,
+            thumb_y,
+            2,
+            thumb_height,
+            13
+        )
+
+        return 0
+    }
+
     fn editor_redraw(I64 buffer, I64 size, I64 cursor, I64 path, I64 dirty) {
         I64 first = mem_read64(
             EDITOR_CACHE_VALID_ADDR()
@@ -3711,7 +3547,7 @@ head(custom) {
             draw_text(
                 8,
                 467,
-                "F2 Save  F5 Run  F6 Build  Home/End  Del  Esc Save+Exit",
+                "F2 Save  F4 Goto  F5 Run  F6 Build  Home/End  Del  Esc Save+Exit",
                 15,
                 1
             )
@@ -3757,6 +3593,7 @@ head(custom) {
         )
 
         draw_text(470, 6, "Ln", 7, 1)
+
         draw_u64_at(
             488,
             6,
@@ -3765,6 +3602,7 @@ head(custom) {
         )
 
         draw_text(535, 6, "Col", 7, 1)
+
         draw_u64_at(
             559,
             6,
@@ -4050,6 +3888,12 @@ head(custom) {
             }
         }
 
+        editor_scrollbar(
+            buffer,
+            size,
+            cursor
+        )
+
         return 0
     }
 
@@ -4157,6 +4001,7 @@ head(custom) {
                     )
 
                     I64 end = str_len(SHELL_BUFFER())
+
                     str_copy_limit(
                         SHELL_BUFFER() + end,
                         path,
@@ -4186,6 +4031,7 @@ head(custom) {
                     )
 
                     I64 end2 = str_len(SHELL_BUFFER())
+
                     str_copy_limit(
                         SHELL_BUFFER() + end2,
                         path,
@@ -4193,6 +4039,7 @@ head(custom) {
                     )
 
                     I64 end3 = str_len(SHELL_BUFFER())
+
                     str_copy_limit(
                         SHELL_BUFFER() + end3,
                         " -o program.bin",
@@ -4214,6 +4061,85 @@ head(custom) {
 
         editor_wait_after_compile()
         return 1
+    }
+
+    fn editor_goto_line(I64 buffer, I64 size, I64 old_cursor) {
+        I64 wanted = 0
+        I64 running = 1
+
+        while (running != 0) {
+            fill_rect(
+                0,
+                462,
+                640,
+                18,
+                5
+            )
+
+            draw_text(
+                8,
+                467,
+                "Go to line:",
+                15,
+                1
+            )
+
+            draw_u64_at(
+                80,
+                467,
+                wanted,
+                15
+            )
+
+            draw_text(
+                150,
+                467,
+                "Enter Go  Backspace Delete  Esc Cancel",
+                7,
+                1
+            )
+
+            I64 key = keyboard_getkey()
+
+            if (key == 27) {
+                return old_cursor
+            } else {
+                if (key == 10) {
+                    if (wanted < 1) {
+                        wanted = 1
+                    }
+
+                    I64 last_line = editor_line_number(
+                        buffer,
+                        size
+                    ) + 1
+
+                    if (wanted > last_line) {
+                        wanted = last_line
+                    }
+
+                    return editor_line_start(
+                        buffer,
+                        size,
+                        wanted - 1
+                    )
+                } else {
+                    if (key == 8) {
+                        wanted = wanted / 10
+                    } else {
+                        if (key >= 48) {
+                            if (key <= 57) {
+                                if (wanted < 1000000) {
+                                    wanted = wanted * 10 + key - 48
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return old_cursor
     }
 
     fn editor_open(I64 path) {
@@ -4246,8 +4172,6 @@ head(custom) {
         I64 cursor = 0
         I64 running = 1
         I64 dirty = 0
-        I64 goto_mode = 0
-        I64 goto_line = 0
 
         editor_cache_reset()
 
@@ -4275,28 +4199,15 @@ head(custom) {
                     }
                 } else {
                     if (key == 266) {
-                        goto_mode = 1
-                        goto_line = 0
-                    }
-                }
-                     else {
-                    if (key == 261) {
-                        if (editor_save(
+                        cursor = editor_goto_line(
                             EDITOR_BUFFER(),
                             size,
-                            EDITOR_PATH()
-                        ) != 0) {
-                            dirty = 0
+                            cursor
+                        )
 
-                            editor_run_compiler(
-                                EDITOR_PATH(),
-                                0
-                            )
-
-                            editor_cache_reset()
-                        }
+                        editor_cache_reset()
                     } else {
-                        if (key == 262) {
+                        if (key == 261) {
                             if (editor_save(
                                 EDITOR_BUFFER(),
                                 size,
@@ -4306,117 +4217,134 @@ head(custom) {
 
                                 editor_run_compiler(
                                     EDITOR_PATH(),
-                                    1
+                                    0
                                 )
 
                                 editor_cache_reset()
                             }
                         } else {
-                            if (key == 256) {
-                                if (cursor > 0) {
-                                    cursor = cursor - 1
+                            if (key == 262) {
+                                if (editor_save(
+                                    EDITOR_BUFFER(),
+                                    size,
+                                    EDITOR_PATH()
+                                ) != 0) {
+                                    dirty = 0
+
+                                    editor_run_compiler(
+                                        EDITOR_PATH(),
+                                        1
+                                    )
+
+                                    editor_cache_reset()
                                 }
                             } else {
-                                if (key == 257) {
-                                    if (cursor < size) {
-                                        cursor = cursor + 1
+                                if (key == 256) {
+                                    if (cursor > 0) {
+                                        cursor = cursor - 1
                                     }
                                 } else {
-                                    if (key == 258) {
-                                        cursor = editor_move_up(
-                                            EDITOR_BUFFER(),
-                                            size,
-                                            cursor
-                                        )
+                                    if (key == 257) {
+                                        if (cursor < size) {
+                                            cursor = cursor + 1
+                                        }
                                     } else {
-                                        if (key == 259) {
-                                            cursor = editor_move_down(
+                                        if (key == 258) {
+                                            cursor = editor_move_up(
                                                 EDITOR_BUFFER(),
                                                 size,
                                                 cursor
                                             )
                                         } else {
-                                            if (key == 263) {
-                                                if (cursor < size) {
-                                                    size = editor_delete_at(
-                                                        EDITOR_BUFFER(),
-                                                        size,
-                                                        cursor
-                                                    )
-
-                                                    dirty = 1
-                                                }
+                                            if (key == 259) {
+                                                cursor = editor_move_down(
+                                                    EDITOR_BUFFER(),
+                                                    size,
+                                                    cursor
+                                                )
                                             } else {
-                                                if (key == 264) {
-                                                    I64 line = editor_line_number(
-                                                        EDITOR_BUFFER(),
-                                                        cursor
-                                                    )
-
-                                                    cursor = editor_line_start(
-                                                        EDITOR_BUFFER(),
-                                                        size,
-                                                        line
-                                                    )
-                                                } else {
-                                                    if (key == 265) {
-                                                        cursor = editor_line_end(
+                                                if (key == 263) {
+                                                    if (cursor < size) {
+                                                        size = editor_delete_at(
                                                             EDITOR_BUFFER(),
                                                             size,
                                                             cursor
                                                         )
+
+                                                        dirty = 1
+                                                    }
+                                                } else {
+                                                    if (key == 264) {
+                                                        I64 line = editor_line_number(
+                                                            EDITOR_BUFFER(),
+                                                            cursor
+                                                        )
+
+                                                        cursor = editor_line_start(
+                                                            EDITOR_BUFFER(),
+                                                            size,
+                                                            line
+                                                        )
                                                     } else {
-                                                        if (key == 8) {
-                                                            if (cursor > 0) {
-                                                                size = editor_delete_before(
-                                                                    EDITOR_BUFFER(),
-                                                                    size,
-                                                                    cursor
-                                                                )
-
-                                                                cursor = cursor - 1
-                                                                dirty = 1
-                                                            }
+                                                        if (key == 265) {
+                                                            cursor = editor_line_end(
+                                                                EDITOR_BUFFER(),
+                                                                size,
+                                                                cursor
+                                                            )
                                                         } else {
-                                                            if (key == 9) {
-                                                                I64 spaces = 0
-
-                                                                while (spaces < 4) {
-                                                                    size = editor_insert(
+                                                            if (key == 8) {
+                                                                if (cursor > 0) {
+                                                                    size = editor_delete_before(
                                                                         EDITOR_BUFFER(),
                                                                         size,
-                                                                        cursor,
-                                                                        32
+                                                                        cursor
                                                                     )
 
-                                                                    cursor = cursor + 1
-                                                                    spaces = spaces + 1
+                                                                    cursor = cursor - 1
+                                                                    dirty = 1
                                                                 }
-
-                                                                dirty = 1
                                                             } else {
-                                                                if (key == 10) {
-                                                                    size = editor_insert(
-                                                                        EDITOR_BUFFER(),
-                                                                        size,
-                                                                        cursor,
-                                                                        10
-                                                                    )
+                                                                if (key == 9) {
+                                                                    I64 spaces = 0
 
-                                                                    cursor = cursor + 1
+                                                                    while (spaces < 4) {
+                                                                        size = editor_insert(
+                                                                            EDITOR_BUFFER(),
+                                                                            size,
+                                                                            cursor,
+                                                                            32
+                                                                        )
+
+                                                                        cursor = cursor + 1
+                                                                        spaces = spaces + 1
+                                                                    }
+
                                                                     dirty = 1
                                                                 } else {
-                                                                    if (key >= 32) {
-                                                                        if (key <= 255) {
-                                                                            size = editor_insert(
-                                                                                EDITOR_BUFFER(),
-                                                                                size,
-                                                                                cursor,
-                                                                                key
-                                                                            )
+                                                                    if (key == 10) {
+                                                                        size = editor_insert(
+                                                                            EDITOR_BUFFER(),
+                                                                            size,
+                                                                            cursor,
+                                                                            10
+                                                                        )
 
-                                                                            cursor = cursor + 1
-                                                                            dirty = 1
+                                                                        cursor = cursor + 1
+                                                                        dirty = 1
+                                                                    } else {
+                                                                        if (key >= 32) {
+                                                                            if (key <= 255) {
+                                                                                size = editor_insert(
+                                                                                    EDITOR_BUFFER(),
+                                                                                    size,
+                                                                                    cursor,
+                                                                                    key
+                                                                                )
+
+                                                                                cursor = cursor + 1
+                                                                                dirty = 1
+                                                                            }
                                                                         }
                                                                     }
                                                                 }
@@ -4456,13 +4384,16 @@ head(custom) {
 
     fn shell_split(I64 line) {
         I64 i = 0
+
         while (mem_read8(line+i) != 0) {
             if (mem_read8(line+i) == 32) {
                 mem_write8(line+i,0)
                 return line+i+1
             }
+
             i = i + 1
         }
+
         return 0
     }
 
@@ -4586,6 +4517,7 @@ head(custom) {
         }
 
         I64 text = shell_split(args)
+
         if (text == 0) {
             terminal_writeln("usage: write FILE TEXT")
             return 0
@@ -4843,6 +4775,7 @@ head(custom) {
             keyboard_read_line(buffer,256)
             shell_execute(buffer)
         }
+
         return 0
     }
 
