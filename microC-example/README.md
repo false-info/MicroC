@@ -1,1489 +1,2047 @@
 # MicroC Examples
 
-A progressive collection of 50 MicroC exercises.
+50 progressive MicroC examples using the current MicroC syntax.
 
-The goal is not to copy solutions.
+The examples start with basic syntax and gradually move toward algorithms, compiler internals and kernel concepts.
 
-The goal is to understand MicroC deeply enough to eventually write:
+The README contains the reference implementation for every exercise. The actual `.mc` files can be written separately while learning.
 
-- normal programs
-- algorithms
-- lexer functions
-- parser functions
-- compiler functions
-- memory functions
-- kernel functions
-- hardware-related code
+## Current syntax
 
-Every exercise starts with an empty code block.
+Modern MicroC code uses top-level heads:
 
-Write the implementation yourself, then add your finished code to this README.
+```mc
+head(custom)
 
----
+fn main() {
+    pin("Hello\n")
+    return 0
+}
+```
+
+When another feature is required:
+
+```mc
+head(custom)
+head(memory)
+```
+
+Do not use the old wrapped syntax:
+
+```text
+head(custom) {
+    ...
+}
+```
 
 ## Learning path
 
 ```text
-Basics
-  ↓
-Functions
-  ↓
-Algorithms
-  ↓
-Compiler internals
-  ↓
-Kernel programming
-  ↓
-MicroC + SuperNovaOS
+01-10  Basics
+        ↓
+11-20  Functions
+        ↓
+21-30  Algorithms
+        ↓
+31-40  Compiler internals
+        ↓
+41-50  Kernel concepts
 ```
 
----
+# 01 - Basics
 
 <details>
-<summary><strong>01 - Basics</strong></summary>
-
-Learn the core MicroC syntax until you can write it without thinking about it.
-
----
-
-<details>
-<summary>01 - hello.mc</summary>
+<summary><strong>01 - hello.mc</strong></summary>
 
 ### Goal
 
-Write the smallest useful MicroC program and print text.
-
-### You should understand
-
-- `head(...)`
-- `fn main()`
-- code blocks
-- `pin`
-- where program execution begins
+Learn the basic program structure and print text.
 
 ### Code
 
 ```mc
-head(custom) {
-    fn main() {
-        pin("hello\n")
-    }
+head(custom)
+
+fn main() {
+    pin("Hello from MicroC!\n")
+    return 0
 }
 ```
 
 </details>
 
 <details>
-<summary>02 - variable.mc</summary>
+<summary><strong>02 - variable.mc</strong></summary>
 
 ### Goal
 
-Create an integer variable, assign a value to it and use it.
-
-### You should understand
-
-- `I64`
-- variable names
-- assignment with `=`
-- reading a variable after assigning it
+Create and use a typed variable.
 
 ### Code
 
 ```mc
-head(custom) {
-    fn main() {
-        I64 x = 5
-        pin("x is %I64", x)
-    }
+head(custom)
+
+fn main() {
+    I64 x = 42
+
+    pin("x = %I64\n", x)
+
+    return 0
 }
 ```
 
 </details>
 
 <details>
-<summary>03 - arithmetic.mc</summary>
+<summary><strong>03 - arithmetic.mc</strong></summary>
 
 ### Goal
 
-Perform arithmetic using variables.
-
-### You should understand
-
-- addition
-- subtraction
-- multiplication
-- expression evaluation
-- storing a result in a variable
+Use arithmetic operators.
 
 ### Code
 
 ```mc
-head(custom) {
-    fn add(I64 a, I64 b) {
-        return a + b
-    }
+head(custom)
 
-    fn sub(I64 a, I64 b) {
-        return a - b
-    }
+fn main() {
+    I64 a = 20
+    I64 b = 5
 
-    fn mult(I64 a, I64 b) {
-        return a * b
-    }
+    I64 add = a + b
+    I64 sub = a - b
+    I64 mul = a * b
+    I64 div = a / b
 
-    fn main() {
-        I64 add_result = add(10, 5)
-        I64 sub_result = sub(10, 5)
-        I64 mult_result = mult(10, 5)
-        pin("a + b is %I64\n", add_result)
-        pin("a - b is %I64\n", sub_result)
-        pin("a * b is %I64\n", mult_result)
-    }
+    pin("add = %I64\n", add)
+    pin("sub = %I64\n", sub)
+    pin("mul = %I64\n", mul)
+    pin("div = %I64\n", div)
 
+    return 0
 }
 ```
 
 </details>
 
 <details>
-<summary>04 - compare.mc</summary>
+<summary><strong>04 - compare.mc</strong></summary>
 
 ### Goal
 
-Compare numeric values.
-
-### You should understand
-
-- `==`
-- `<`
-- `>`
-- the difference between assignment and comparison
-- true and false conditions
+Compare integer values.
 
 ### Code
 
 ```mc
-head(custom) {
-    fn main() {
-        I64 x = 3
-        if (x >= 4) {
-            pin("x is bigger then 4\n")
-        }
-        if (x <= 2) {
-            pin("x is less then 2\n")
-        }
-        if (x == 3) {
-            pin("x is 3\n")
-        }
+head(custom)
+
+fn main() {
+    I64 x = 10
+
+    if (x > 5) {
+        pin("x > 5\n")
     }
+
+    if (x < 20) {
+        pin("x < 20\n")
+    }
+
+    if (x == 10) {
+        pin("x == 10\n")
+    }
+
+    return 0
 }
 ```
 
 </details>
 
 <details>
-<summary>05 - if.mc</summary>
+<summary><strong>05 - if.mc</strong></summary>
 
 ### Goal
 
 Execute code only when a condition is true.
 
-### You should understand
-
-- `if`
-- conditions
-- comparison expressions
-- conditional code blocks
-
 ### Code
 
 ```mc
-head(custom) {
-    fn main() {
-        I64 temp = 30
-        if(temp >= 25) {
-            pin("very warm\n")
-        }
+head(custom)
+
+fn main() {
+    I64 temperature = 30
+
+    if (temperature >= 25) {
+        pin("It is warm\n")
     }
+
+    return 0
 }
 ```
 
 </details>
 
 <details>
-<summary>06 - if-else.mc</summary>
+<summary><strong>06 - if-else.mc</strong></summary>
 
 ### Goal
 
-Choose between two different paths.
-
-### You should understand
-
-- `if`
-- `else`
-- mutually exclusive branches
-- how execution continues after a branch
+Choose between two code paths.
 
 ### Code
 
 ```mc
-head(custom) {
-    fn main() {
-        I64 x = 2
-        if(x == 1) {
-            pin("x is 1\n")
+head(custom)
+
+fn main() {
+    I64 x = 7
+
+    if (x >= 10) {
+        pin("large\n")
+    }
+    else {
+        pin("small\n")
+    }
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>07 - counter.mc</strong></summary>
+
+### Goal
+
+Learn `while` loops and counters.
+
+### Code
+
+```mc
+head(custom)
+
+fn main() {
+    I64 i = 0
+
+    while (i < 10) {
+        pin("%I64\n", i)
+        i = i + 1
+    }
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>08 - countdown.mc</strong></summary>
+
+### Goal
+
+Count downward.
+
+### Code
+
+```mc
+head(custom)
+
+fn main() {
+    I64 i = 10
+
+    while (i > 0) {
+        pin("%I64\n", i)
+        i = i - 1
+    }
+
+    pin("done\n")
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>09 - even.mc</strong></summary>
+
+### Goal
+
+Use modulo to detect even and odd numbers.
+
+### Code
+
+```mc
+head(custom)
+
+fn main() {
+    I64 i = 1
+
+    while (i <= 10) {
+        if ((i % 2) == 0) {
+            pin("%I64 even\n", i)
         }
         else {
-            pin("x is something else\n")
+            pin("%I64 odd\n", i)
         }
+
+        i = i + 1
     }
+
+    return 0
 }
 ```
 
 </details>
 
 <details>
-<summary>07 - counter.mc</summary>
+<summary><strong>10 - fizz-like.mc</strong></summary>
 
 ### Goal
 
-Create a counter that changes inside a loop.
-
-### You should understand
-
-- `while`
-- counters
-- changing variables
-- loop conditions
-- avoiding infinite loops
+Combine loops, modulo and nested conditions.
 
 ### Code
 
 ```mc
-head(custom) {
-    fn main() {
-        I64 x = 0
-        pin("counting up from %I64\n", x)
-        while (x != 10) {
-            pin("x is %I64\n", x)
-            x = x + 1
-            if(x == 10) {
-                pin("x stopped at %I64\n", x)
-            }
+head(custom)
+
+fn main() {
+    I64 i = 1
+
+    while (i <= 15) {
+        if ((i % 15) == 0) {
+            pin("both\n")
         }
-    }
-}
-```
-
-</details>
-
-<details>
-<summary>08 - countdown.mc</summary>
-
-### Goal
-
-Count downward instead of upward.
-
-### You should understand
-
-- decreasing values
-- loop termination
-- greater-than comparisons
-- changing control variables
-
-### Code
-
-```mc
-head(custom) {
-    fn main() {
-        I64 x = 10
-        pin("counting down from %I64\n", x)
-        while(x != 0) {
-            pin("x is %I64\n", x)
-            x = x - 1
-            if(x == 0) {
-                pin("stopped at %I64\n", x)
-            }
-        }
-    }
-}
-```
-
-</details>
-
-<details>
-<summary>09 - even.mc</summary>
-
-### Goal
-
-Determine whether numbers follow an even-number pattern.
-
-### You should understand
-
-- arithmetic patterns
-- conditions
-- repeated decisions
-- breaking a problem into smaller operations
-
-### Code
-
-```mc
-head(custom) {
-    fn main() {
-        I64 x = 1
-        while(x <= 10) {
-            pin("%I64 is ", x)
-            if((x % 2) == 0) {
-                pin("even\n")
-            } else {
-                pin("odd\n")
-            }
-            x = x + 1
-        }
-    }
-}
-```
-
-</details>
-
-<details>
-<summary>10 - fizz-like.mc</summary>
-
-### Goal
-
-Use several conditions while iterating through numbers.
-
-### You should understand
-
-- loops
-- multiple `if` statements
-- condition ordering
-- counters
-- combining arithmetic and control flow
-
-### Code
-
-```mc
-head(custom) {
-    fn main() {
-        I64 x = 1
-        while(x <= 15) {
-            if((x % 15) == 0) {
-                pin("both\n")
+        else {
+            if ((i % 3) == 0) {
+                pin("three\n")
             }
             else {
-                if((x % 3) == 0) {
-                    pin("three\n")
+                if ((i % 5) == 0) {
+                    pin("five\n")
                 }
                 else {
-                    if((x % 5) == 0) {
-                        pin("five\n")
-                    }
-                    else {
-                        pin("%I64\n", x)
-                    }
+                    pin("%I64\n", i)
                 }
             }
-            x = x + 1
         }
+
+        i = i + 1
     }
+
+    return 0
 }
 ```
 
 </details>
 
-</details>
-
----
+# 02 - Functions
 
 <details>
-<summary><strong>02 - Functions</strong></summary>
-
-Learn how larger MicroC programs are divided into small reusable pieces.
-
----
-
-<details>
-<summary>11 - first-function.mc</summary>
+<summary><strong>11 - first-function.mc</strong></summary>
 
 ### Goal
 
-Create a function outside `main` and call it.
-
-### You should understand
-
-- `fn`
-- function names
-- function calls
-- control returning to the caller
+Create and call your first function.
 
 ### Code
 
 ```mc
+head(custom)
+
+fn hello() {
+    pin("Hello from a function\n")
+    return 0
+}
+
+fn main() {
+    hello()
+    return 0
+}
 ```
 
 </details>
 
 <details>
-<summary>12 - function-argument.mc</summary>
+<summary><strong>12 - function-argument.mc</strong></summary>
 
 ### Goal
 
-Pass information into a function.
-
-### You should understand
-
-- function parameters
-- arguments
-- local values
-- caller and callee
+Pass an argument into a function.
 
 ### Code
 
 ```mc
+head(custom)
+
+fn show_number(I64 number) {
+    pin("number = %I64\n", number)
+    return 0
+}
+
+fn main() {
+    show_number(42)
+    return 0
+}
 ```
 
 </details>
 
 <details>
-<summary>13 - two-arguments.mc</summary>
+<summary><strong>13 - two-arguments.mc</strong></summary>
 
 ### Goal
 
-Write a function that operates on two inputs.
-
-### You should understand
-
-- multiple parameters
-- parameter order
-- expressions using parameters
-- reusable functions
+Use multiple function arguments.
 
 ### Code
 
 ```mc
+head(custom)
+
+fn add(I64 a, I64 b) {
+    return a + b
+}
+
+fn main() {
+    I64 result = add(12, 30)
+
+    pin("result = %I64\n", result)
+
+    return 0
+}
 ```
 
 </details>
 
 <details>
-<summary>14 - global-state.mc</summary>
+<summary><strong>14 - global-state.mc</strong></summary>
 
 ### Goal
 
-Use a value that can be accessed by multiple functions.
-
-### You should understand
-
-- global state
-- local state
-- changing shared values
-- why global state must be handled carefully
+Learn how multiple functions can work with shared state.
 
 ### Code
 
 ```mc
+head(custom)
+head(memory)
+
+fn set_state(I64 state, I64 value) {
+    safe_write64(state, 0, value)
+    return 0
+}
+
+fn get_state(I64 state) {
+    return safe_read64(state, 0)
+}
+
+fn main() {
+    I64 state = safe_alloc(8)
+
+    set_state(state, 123)
+
+    I64 value = get_state(state)
+
+    pin("state = %I64\n", value)
+
+    safe_free(state)
+
+    return 0
+}
 ```
 
 </details>
 
 <details>
-<summary>15 - counter-function.mc</summary>
+<summary><strong>15 - counter-function.mc</strong></summary>
 
 ### Goal
 
-Move counter logic out of `main` and into a function.
-
-### You should understand
-
-- separating responsibilities
-- functions that modify state
-- loops inside functions
-- clean program structure
+Move loop logic into a function.
 
 ### Code
 
 ```mc
+head(custom)
+
+fn count_to(I64 maximum) {
+    I64 i = 0
+
+    while (i <= maximum) {
+        pin("%I64\n", i)
+        i = i + 1
+    }
+
+    return 0
+}
+
+fn main() {
+    count_to(10)
+    return 0
+}
 ```
 
 </details>
 
 <details>
-<summary>16 - character-values.mc</summary>
+<summary><strong>16 - character-values.mc</strong></summary>
 
 ### Goal
 
-Work with characters as numeric values.
-
-### You should understand
-
-- ASCII
-- characters are represented by numbers
-- `'0'` through `'9'`
-- `'A'` through `'Z'`
-- `'a'` through `'z'`
+Understand that characters are numeric values.
 
 ### Code
 
 ```mc
+head(custom)
+
+fn main() {
+    I64 a = 65
+    I64 b = 66
+    I64 c = 67
+
+    pin("%c\n", a)
+    pin("%c\n", b)
+    pin("%c\n", c)
+
+    return 0
+}
 ```
 
 </details>
 
 <details>
-<summary>17 - is-digit.mc</summary>
+<summary><strong>17 - is-digit.mc</strong></summary>
 
 ### Goal
 
-Determine whether a character represents a decimal digit.
-
-### You should understand
-
-- ASCII value ranges
-- `'0'` to `'9'`
-- range checking
-- why lexers need character classification
+Detect ASCII digits.
 
 ### Code
 
 ```mc
+head(custom)
+
+fn is_digit(I64 c) {
+    if (c >= 48) {
+        if (c <= 57) {
+            return 1
+        }
+    }
+
+    return 0
+}
+
+fn main() {
+    pin("5 = %I64\n", is_digit(53))
+    pin("A = %I64\n", is_digit(65))
+
+    return 0
+}
 ```
 
 </details>
 
 <details>
-<summary>18 - is-letter.mc</summary>
+<summary><strong>18 - is-letter.mc</strong></summary>
 
 ### Goal
 
-Determine whether a character is a letter.
-
-### You should understand
-
-- uppercase ASCII ranges
-- lowercase ASCII ranges
-- combining multiple conditions
-- identifier parsing
+Detect ASCII letters.
 
 ### Code
 
 ```mc
+head(custom)
+
+fn is_letter(I64 c) {
+    if (c >= 65) {
+        if (c <= 90) {
+            return 1
+        }
+    }
+
+    if (c >= 97) {
+        if (c <= 122) {
+            return 1
+        }
+    }
+
+    return 0
+}
+
+fn main() {
+    pin("A = %I64\n", is_letter(65))
+    pin("z = %I64\n", is_letter(122))
+    pin("7 = %I64\n", is_letter(55))
+
+    return 0
+}
 ```
 
 </details>
 
 <details>
-<summary>19 - is-whitespace.mc</summary>
+<summary><strong>19 - is-whitespace.mc</strong></summary>
 
 ### Goal
 
-Recognize whitespace characters.
-
-### You should understand
-
-- spaces
-- newlines
-- tabs
-- character classification
-- why compilers skip whitespace
+Recognize spaces, tabs and newlines.
 
 ### Code
 
 ```mc
+head(custom)
+
+fn is_whitespace(I64 c) {
+    if (c == 32) {
+        return 1
+    }
+
+    if (c == 9) {
+        return 1
+    }
+
+    if (c == 10) {
+        return 1
+    }
+
+    if (c == 13) {
+        return 1
+    }
+
+    return 0
+}
+
+fn main() {
+    pin("space = %I64\n", is_whitespace(32))
+    pin("A = %I64\n", is_whitespace(65))
+
+    return 0
+}
 ```
 
 </details>
 
 <details>
-<summary>20 - dispatch.mc</summary>
+<summary><strong>20 - dispatch.mc</strong></summary>
 
 ### Goal
 
-Choose which function to call based on a value or type.
-
-### You should understand
-
-- dispatch
-- branching
-- function calls
-- separating behavior by type
+Dispatch different behavior based on a value.
 
 ### Code
 
 ```mc
+head(custom)
+
+fn action_one() {
+    pin("action one\n")
+    return 0
+}
+
+fn action_two() {
+    pin("action two\n")
+    return 0
+}
+
+fn dispatch(I64 action) {
+    if (action == 1) {
+        action_one()
+        return 1
+    }
+
+    if (action == 2) {
+        action_two()
+        return 1
+    }
+
+    pin("unknown action\n")
+    return 0
+}
+
+fn main() {
+    dispatch(1)
+    dispatch(2)
+    dispatch(99)
+
+    return 0
+}
 ```
 
 </details>
 
-</details>
-
----
+# 03 - Algorithms
 
 <details>
-<summary><strong>03 - Algorithms</strong></summary>
-
-Build small algorithms that are directly useful inside compilers and kernels.
-
----
-
-<details>
-<summary>21 - digit-to-number.mc</summary>
+<summary><strong>21 - digit-to-number.mc</strong></summary>
 
 ### Goal
 
 Convert an ASCII digit into its numeric value.
 
-### You should understand
-
-- ASCII
-- `'0'` has a numeric character code
-- converting character representation into integer representation
-- arithmetic on character values
-
 ### Code
 
 ```mc
+head(custom)
+
+fn digit_to_number(I64 c) {
+    return c - 48
+}
+
+fn main() {
+    I64 value = digit_to_number(55)
+
+    pin("7 becomes %I64\n", value)
+
+    return 0
+}
 ```
 
 </details>
 
 <details>
-<summary>22 - parse-number.mc</summary>
+<summary><strong>22 - parse-number.mc</strong></summary>
 
 ### Goal
 
-Convert several digit characters into one integer.
+Convert a string containing decimal digits into an integer.
 
-### You should understand
+### Code
 
-The idea behind:
+```mc
+head(custom)
+head(memory)
+
+fn parse_number(I64 text) {
+    I64 value = 0
+    I64 i = 0
+    I64 length = strlen(text)
+
+    while (i < length) {
+        I64 c = mem_read8(text + i)
+
+        value = value * 10
+        value = value + c - 48
+
+        i = i + 1
+    }
+
+    return value
+}
+
+fn main() {
+    I64 value = parse_number("583")
+
+    pin("value = %I64\n", value)
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>23 - scan-until.mc</strong></summary>
+
+### Goal
+
+Scan through input until a target character is found.
+
+### Code
+
+```mc
+head(custom)
+head(memory)
+
+fn scan_until(I64 text, I64 target) {
+    I64 i = 0
+    I64 length = strlen(text)
+
+    while (i < length) {
+        I64 c = mem_read8(text + i)
+
+        if (c == target) {
+            return i
+        }
+
+        i = i + 1
+    }
+
+    return 0 - 1
+}
+
+fn main() {
+    I64 position = scan_until("hello:world", 58)
+
+    pin("':' at %I64\n", position)
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>24 - skip-whitespace.mc</strong></summary>
+
+### Goal
+
+Find the first non-whitespace character.
+
+### Code
+
+```mc
+head(custom)
+head(memory)
+
+fn whitespace(I64 c) {
+    if (c == 32) {
+        return 1
+    }
+
+    if (c == 9) {
+        return 1
+    }
+
+    if (c == 10) {
+        return 1
+    }
+
+    return 0
+}
+
+fn skip_whitespace(I64 text) {
+    I64 i = 0
+    I64 length = strlen(text)
+    I64 done = 0
+
+    while (done == 0) {
+        if (i >= length) {
+            done = 1
+        }
+        else {
+            I64 c = mem_read8(text + i)
+
+            if (whitespace(c) == 0) {
+                done = 1
+            }
+            else {
+                i = i + 1
+            }
+        }
+    }
+
+    return i
+}
+
+fn main() {
+    I64 position = skip_whitespace("   hello")
+
+    pin("first token starts at %I64\n", position)
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>25 - find-character.mc</strong></summary>
+
+### Goal
+
+Implement a simple linear search.
+
+### Code
+
+```mc
+head(custom)
+head(memory)
+
+fn find_character(I64 text, I64 target) {
+    I64 i = 0
+    I64 length = strlen(text)
+
+    while (i < length) {
+        if (mem_read8(text + i) == target) {
+            return i
+        }
+
+        i = i + 1
+    }
+
+    return 0 - 1
+}
+
+fn main() {
+    I64 index = find_character("MicroC", 67)
+
+    pin("C index = %I64\n", index)
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>26 - copy-bytes.mc</strong></summary>
+
+### Goal
+
+Understand the idea behind `memcpy`.
+
+### Code
+
+```mc
+head(custom)
+head(memory)
+
+fn copy_bytes(I64 destination, I64 source, I64 count) {
+    I64 i = 0
+
+    while (i < count) {
+        I64 value = safe_read8(source, i)
+
+        safe_write8(destination, i, value)
+
+        i = i + 1
+    }
+
+    return 0
+}
+
+fn main() {
+    I64 source = safe_alloc(4)
+    I64 destination = safe_alloc(4)
+
+    safe_write8(source, 0, 10)
+    safe_write8(source, 1, 20)
+    safe_write8(source, 2, 30)
+    safe_write8(source, 3, 40)
+
+    copy_bytes(destination, source, 4)
+
+    pin("%I64\n", safe_read8(destination, 0))
+    pin("%I64\n", safe_read8(destination, 1))
+    pin("%I64\n", safe_read8(destination, 2))
+    pin("%I64\n", safe_read8(destination, 3))
+
+    safe_free(source)
+    safe_free(destination)
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>27 - fill-bytes.mc</strong></summary>
+
+### Goal
+
+Understand the idea behind `memset`.
+
+### Code
+
+```mc
+head(custom)
+head(memory)
+
+fn fill_bytes(I64 memory, I64 count, I64 value) {
+    I64 i = 0
+
+    while (i < count) {
+        safe_write8(memory, i, value)
+        i = i + 1
+    }
+
+    return 0
+}
+
+fn main() {
+    I64 buffer = safe_alloc(8)
+
+    fill_bytes(buffer, 8, 65)
+
+    I64 i = 0
+
+    while (i < 8) {
+        pin("%c", safe_read8(buffer, i))
+        i = i + 1
+    }
+
+    pin("\n")
+
+    safe_free(buffer)
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>28 - state-machine.mc</strong></summary>
+
+### Goal
+
+Build a simple state machine.
+
+### Code
+
+```mc
+head(custom)
+
+fn main() {
+    I64 state = 0
+    I64 running = 1
+
+    while (running != 0) {
+        if (state == 0) {
+            pin("START\n")
+            state = 1
+        }
+        else {
+            if (state == 1) {
+                pin("READ\n")
+                state = 2
+            }
+            else {
+                if (state == 2) {
+                    pin("DONE\n")
+                    running = 0
+                }
+            }
+        }
+    }
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>29 - command-parser.mc</strong></summary>
+
+### Goal
+
+Recognize simple commands.
+
+### Code
+
+```mc
+head(custom)
+
+fn parse_command(I64 command) {
+    if (strcmp(command, "run") == 0) {
+        pin("running\n")
+        return 1
+    }
+
+    if (strcmp(command, "stop") == 0) {
+        pin("stopping\n")
+        return 2
+    }
+
+    if (strcmp(command, "help") == 0) {
+        pin("commands: run stop help\n")
+        return 3
+    }
+
+    pin("unknown command\n")
+
+    return 0
+}
+
+fn main() {
+    parse_command("run")
+    parse_command("help")
+    parse_command("stop")
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>30 - mini-tokenizer.mc</strong></summary>
+
+### Goal
+
+Recognize simple token categories.
+
+### Code
+
+```mc
+head(custom)
+head(memory)
+
+fn is_digit(I64 c) {
+    if (c >= 48) {
+        if (c <= 57) {
+            return 1
+        }
+    }
+
+    return 0
+}
+
+fn is_letter(I64 c) {
+    if (c >= 65) {
+        if (c <= 90) {
+            return 1
+        }
+    }
+
+    if (c >= 97) {
+        if (c <= 122) {
+            return 1
+        }
+    }
+
+    return 0
+}
+
+fn main() {
+    I64 source = "x = 42"
+    I64 i = 0
+    I64 length = strlen(source)
+
+    while (i < length) {
+        I64 c = mem_read8(source + i)
+
+        if (is_letter(c) != 0) {
+            pin("%c : identifier\n", c)
+        }
+        else {
+            if (is_digit(c) != 0) {
+                pin("%c : number\n", c)
+            }
+            else {
+                if (c == 61) {
+                    pin("= : operator\n")
+                }
+            }
+        }
+
+        i = i + 1
+    }
+
+    return 0
+}
+```
+
+</details>
+
+# 04 - Compiler Internals
+
+<details>
+<summary><strong>31 - next-char.mc</strong></summary>
+
+### Goal
+
+Read source code one character at a time.
+
+### Code
+
+```mc
+head(custom)
+head(memory)
+
+fn next_char(I64 source, I64 position) {
+    return mem_read8(source + position)
+}
+
+fn main() {
+    I64 source = "MicroC"
+
+    I64 position = 0
+
+    while (position < strlen(source)) {
+        I64 c = next_char(source, position)
+
+        pin("%c\n", c)
+
+        position = position + 1
+    }
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>32 - peek-char.mc</strong></summary>
+
+### Goal
+
+Look ahead without changing the current source position.
+
+### Code
+
+```mc
+head(custom)
+head(memory)
+
+fn current_char(I64 source, I64 position) {
+    return mem_read8(source + position)
+}
+
+fn peek_char(I64 source, I64 position) {
+    return mem_read8(source + position + 1)
+}
+
+fn main() {
+    I64 source = "abc"
+    I64 position = 0
+
+    pin("current = %c\n", current_char(source, position))
+    pin("peek = %c\n", peek_char(source, position))
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>33 - read-number-token.mc</strong></summary>
+
+### Goal
+
+Read a numeric token from source code.
+
+### Code
+
+```mc
+head(custom)
+head(memory)
+
+fn is_digit(I64 c) {
+    if (c >= 48) {
+        if (c <= 57) {
+            return 1
+        }
+    }
+
+    return 0
+}
+
+fn read_number(I64 source) {
+    I64 value = 0
+    I64 position = 0
+    I64 reading = 1
+
+    while (reading != 0) {
+        I64 c = mem_read8(source + position)
+
+        if (is_digit(c) == 0) {
+            reading = 0
+        }
+        else {
+            value = value * 10 + c - 48
+            position = position + 1
+        }
+    }
+
+    return value
+}
+
+fn main() {
+    I64 value = read_number("12345+")
+
+    pin("number = %I64\n", value)
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>34 - read-identifier.mc</strong></summary>
+
+### Goal
+
+Read an identifier into a new buffer.
+
+### Code
+
+```mc
+head(custom)
+head(memory)
+
+fn identifier_char(I64 c) {
+    if (c >= 65) {
+        if (c <= 90) {
+            return 1
+        }
+    }
+
+    if (c >= 97) {
+        if (c <= 122) {
+            return 1
+        }
+    }
+
+    if (c >= 48) {
+        if (c <= 57) {
+            return 1
+        }
+    }
+
+    if (c == 95) {
+        return 1
+    }
+
+    return 0
+}
+
+fn main() {
+    I64 source = "kernel_main("
+    I64 output = safe_alloc(64)
+
+    I64 position = 0
+    I64 reading = 1
+
+    while (reading != 0) {
+        I64 c = mem_read8(source + position)
+
+        if (identifier_char(c) == 0) {
+            reading = 0
+        }
+        else {
+            safe_write8(output, position, c)
+            position = position + 1
+        }
+    }
+
+    safe_write8(output, position, 0)
+
+    pin("identifier = %s\n", output)
+
+    safe_free(output)
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>35 - keyword-check.mc</strong></summary>
+
+### Goal
+
+Recognize language keywords.
+
+### Code
+
+```mc
+head(custom)
+
+fn keyword_id(I64 text) {
+    if (strcmp(text, "fn") == 0) {
+        return 1
+    }
+
+    if (strcmp(text, "if") == 0) {
+        return 2
+    }
+
+    if (strcmp(text, "else") == 0) {
+        return 3
+    }
+
+    if (strcmp(text, "while") == 0) {
+        return 4
+    }
+
+    if (strcmp(text, "return") == 0) {
+        return 5
+    }
+
+    return 0
+}
+
+fn main() {
+    pin("fn = %I64\n", keyword_id("fn"))
+    pin("while = %I64\n", keyword_id("while"))
+    pin("hello = %I64\n", keyword_id("hello"))
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>36 - token-loop.mc</strong></summary>
+
+### Goal
+
+Loop through source and classify characters.
+
+### Code
+
+```mc
+head(custom)
+head(memory)
+
+fn main() {
+    I64 source = "I64 x = 42"
+    I64 position = 0
+    I64 length = strlen(source)
+
+    while (position < length) {
+        I64 c = mem_read8(source + position)
+
+        if (c == 32) {
+            pin("SPACE\n")
+        }
+        else {
+            if (c >= 48) {
+                if (c <= 57) {
+                    pin("DIGIT %c\n", c)
+                }
+                else {
+                    pin("CHAR %c\n", c)
+                }
+            }
+            else {
+                if (c == 61) {
+                    pin("EQUAL\n")
+                }
+                else {
+                    pin("CHAR %c\n", c)
+                }
+            }
+        }
+
+        position = position + 1
+    }
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>37 - variable-table.mc</strong></summary>
+
+### Goal
+
+Understand a simple compiler symbol table.
+
+### Code
+
+```mc
+head(custom)
+head(memory)
+
+fn main() {
+    I64 table = safe_alloc(64)
+
+    safe_write64(table, 0, 1001)
+    safe_write64(table, 8, 42)
+
+    safe_write64(table, 16, 1002)
+    safe_write64(table, 24, 99)
+
+    I64 hash1 = safe_read64(table, 0)
+    I64 value1 = safe_read64(table, 8)
+
+    I64 hash2 = safe_read64(table, 16)
+    I64 value2 = safe_read64(table, 24)
+
+    pin("entry 1: hash=%I64 value=%I64\n", hash1, value1)
+    pin("entry 2: hash=%I64 value=%I64\n", hash2, value2)
+
+    safe_free(table)
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>38 - find-variable.mc</strong></summary>
+
+### Goal
+
+Search a symbol table.
+
+### Code
+
+```mc
+head(custom)
+head(memory)
+
+fn find_variable(I64 table, I64 count, I64 target) {
+    I64 i = 0
+
+    while (i < count) {
+        I64 offset = i * 16
+        I64 hash = safe_read64(table, offset)
+
+        if (hash == target) {
+            return safe_read64(table, offset + 8)
+        }
+
+        i = i + 1
+    }
+
+    return 0 - 1
+}
+
+fn main() {
+    I64 table = safe_alloc(64)
+
+    safe_write64(table, 0, 1001)
+    safe_write64(table, 8, 42)
+
+    safe_write64(table, 16, 1002)
+    safe_write64(table, 24, 99)
+
+    I64 value = find_variable(table, 2, 1002)
+
+    pin("value = %I64\n", value)
+
+    safe_free(table)
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>39 - emit-byte.mc</strong></summary>
+
+### Goal
+
+Understand how a compiler writes machine-code bytes.
+
+### Code
+
+```mc
+head(custom)
+head(memory)
+
+fn emit_byte(I64 output, I64 position, I64 value) {
+    safe_write8(output, position, value)
+    return position + 1
+}
+
+fn main() {
+    I64 output = safe_alloc(16)
+    I64 position = 0
+
+    position = emit_byte(output, position, 0x90)
+    position = emit_byte(output, position, 0x90)
+    position = emit_byte(output, position, 0xC3)
+
+    I64 i = 0
+
+    while (i < position) {
+        pin("%X64\n", safe_read8(output, i))
+        i = i + 1
+    }
+
+    safe_free(output)
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>40 - emit-instruction.mc</strong></summary>
+
+### Goal
+
+Emit a complete x86 instruction.
+
+### Code
+
+```mc
+head(custom)
+head(memory)
+
+fn emit_xor_eax_eax(I64 output) {
+    safe_write8(output, 0, 0x31)
+    safe_write8(output, 1, 0xC0)
+
+    return 2
+}
+
+fn main() {
+    I64 output = safe_alloc(16)
+
+    I64 size = emit_xor_eax_eax(output)
+
+    pin("instruction size = %I64\n", size)
+    pin("byte 0 = %X64\n", safe_read8(output, 0))
+    pin("byte 1 = %X64\n", safe_read8(output, 1))
+
+    safe_free(output)
+
+    return 0
+}
+```
+
+</details>
+
+# 05 - Kernel Concepts
+
+<details>
+<summary><strong>41 - memory-write.mc</strong></summary>
+
+### Goal
+
+Write structured values into memory.
+
+### Code
+
+```mc
+head(custom)
+head(memory)
+
+fn main() {
+    I64 memory = safe_alloc(32)
+
+    safe_write64(memory, 0, 0x1234)
+    safe_write64(memory, 8, 0x5678)
+    safe_write64(memory, 16, 0x9ABC)
+
+    pin("memory written\n")
+
+    safe_free(memory)
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>42 - memory-read.mc</strong></summary>
+
+### Goal
+
+Read structured values from memory.
+
+### Code
+
+```mc
+head(custom)
+head(memory)
+
+fn main() {
+    I64 memory = safe_alloc(16)
+
+    safe_write64(memory, 0, 123)
+    safe_write64(memory, 8, 456)
+
+    I64 a = safe_read64(memory, 0)
+    I64 b = safe_read64(memory, 8)
+
+    pin("a = %I64\n", a)
+    pin("b = %I64\n", b)
+
+    safe_free(memory)
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>43 - vga-character.mc</strong></summary>
+
+### Goal
+
+Understand the layout of a VGA text-mode cell.
+
+### Code
+
+```mc
+head(custom)
+
+fn vga_cell(I64 character, I64 color) {
+    return character + color * 256
+}
+
+fn main() {
+    I64 cell = vga_cell(65, 15)
+
+    pin("VGA cell = %X64\n", cell)
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>44 - kernel-putc.mc</strong></summary>
+
+### Goal
+
+Write a character into a simulated VGA text buffer.
+
+### Code
+
+```mc
+head(custom)
+head(memory)
+
+fn kernel_putc(I64 buffer, I64 cursor, I64 character, I64 color) {
+    I64 cell = character + color * 256
+
+    safe_write16(buffer, cursor * 2, cell)
+
+    return cursor + 1
+}
+
+fn main() {
+    I64 vga = safe_alloc(4000)
+
+    I64 cursor = 0
+
+    cursor = kernel_putc(vga, cursor, 72, 15)
+    cursor = kernel_putc(vga, cursor, 105, 15)
+
+    pin("cursor = %I64\n", cursor)
+
+    safe_free(vga)
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>45 - kernel-newline.mc</strong></summary>
+
+### Goal
+
+Move a text cursor to the next row.
+
+### Code
+
+```mc
+head(custom)
+
+fn newline(I64 cursor, I64 width) {
+    I64 row = cursor / width
+    row = row + 1
+
+    return row * width
+}
+
+fn main() {
+    I64 cursor = 17
+
+    cursor = newline(cursor, 80)
+
+    pin("new cursor = %I64\n", cursor)
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>46 - clear-screen.mc</strong></summary>
+
+### Goal
+
+Clear a simulated VGA text screen.
+
+### Code
+
+```mc
+head(custom)
+head(memory)
+
+fn clear_screen(I64 buffer, I64 cells, I64 color) {
+    I64 i = 0
+    I64 empty_cell = 32 + color * 256
+
+    while (i < cells) {
+        safe_write16(buffer, i * 2, empty_cell)
+        i = i + 1
+    }
+
+    return 0
+}
+
+fn main() {
+    I64 screen = safe_alloc(4000)
+
+    clear_screen(screen, 2000, 15)
+
+    pin("screen cleared\n")
+
+    safe_free(screen)
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>47 - serial-putc.mc</strong></summary>
+
+### Goal
+
+Understand how characters can be queued for a serial output device.
+
+This hosted example simulates the transmit queue instead of accessing privileged hardware ports.
+
+### Code
+
+```mc
+head(custom)
+head(memory)
+
+fn serial_putc(I64 queue, I64 position, I64 character) {
+    safe_write8(queue, position, character)
+
+    return position + 1
+}
+
+fn main() {
+    I64 queue = safe_alloc(64)
+
+    I64 position = 0
+
+    position = serial_putc(queue, position, 72)
+    position = serial_putc(queue, position, 101)
+    position = serial_putc(queue, position, 108)
+    position = serial_putc(queue, position, 108)
+    position = serial_putc(queue, position, 111)
+
+    I64 i = 0
+
+    while (i < position) {
+        pin("%c", safe_read8(queue, i))
+        i = i + 1
+    }
+
+    pin("\n")
+
+    safe_free(queue)
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>48 - keyboard-state.mc</strong></summary>
+
+### Goal
+
+Understand keyboard press and release state.
+
+### Code
+
+```mc
+head(custom)
+head(memory)
+
+fn update_key(I64 state, I64 scancode) {
+    if (scancode < 128) {
+        safe_write8(state, scancode, 1)
+        return 1
+    }
+
+    I64 key = scancode - 128
+
+    safe_write8(state, key, 0)
+
+    return 0
+}
+
+fn main() {
+    I64 keyboard = safe_alloc(128)
+
+    update_key(keyboard, 30)
+
+    pin("key 30 pressed = %I64\n", safe_read8(keyboard, 30))
+
+    update_key(keyboard, 158)
+
+    pin("key 30 pressed = %I64\n", safe_read8(keyboard, 30))
+
+    safe_free(keyboard)
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>49 - clock-counter.mc</strong></summary>
+
+### Goal
+
+Use a monotonic clock for kernel-style ticks.
+
+### Code
+
+```mc
+head(custom)
+head(time)
+
+fn main() {
+    I64 start = time_monotonic_ms()
+    I64 tick = 0
+
+    while (tick < 5) {
+        sleep_ms(100)
+
+        I64 now = time_monotonic_ms()
+        I64 elapsed = now - start
+
+        pin("tick %I64 at %I64 ms\n", tick, elapsed)
+
+        tick = tick + 1
+    }
+
+    return 0
+}
+```
+
+</details>
+
+<details>
+<summary><strong>50 - mini-compiler-kernel.mc</strong></summary>
+
+### Goal
+
+Combine parsing, memory and machine-code emission.
+
+The example reads a number and builds a tiny x86 instruction stream.
+
+### Code
+
+```mc
+head(custom)
+head(memory)
+
+fn parse_number(I64 source) {
+    I64 value = 0
+    I64 position = 0
+    I64 reading = 1
+
+    while (reading != 0) {
+        I64 c = mem_read8(source + position)
+
+        if (c < 48) {
+            reading = 0
+        }
+        else {
+            if (c > 57) {
+                reading = 0
+            }
+            else {
+                value = value * 10 + c - 48
+                position = position + 1
+            }
+        }
+    }
+
+    return value
+}
+
+fn main() {
+    I64 source = "42"
+    I64 value = parse_number(source)
+
+    I64 output = safe_alloc(16)
+
+    safe_write8(output, 0, 0xB8)
+    safe_write8(output, 1, value)
+    safe_write8(output, 2, 0)
+    safe_write8(output, 3, 0)
+    safe_write8(output, 4, 0)
+    safe_write8(output, 5, 0xC3)
+
+    pin("parsed = %I64\n", value)
+    pin("machine code:\n")
+
+    I64 i = 0
+
+    while (i < 6) {
+        pin("%X64\n", safe_read8(output, i))
+        i = i + 1
+    }
+
+    safe_free(output)
+
+    return 0
+}
+```
+
+</details>
+
+# After example 50
+
+At this point you should understand the basic pieces behind:
 
 ```text
-"583"
-
-0
-0 * 10 + 5 = 5
-5 * 10 + 8 = 58
-58 * 10 + 3 = 583
-```
-
-You should also understand:
-
-- loops
-- ASCII digit conversion
-- decimal place values
-- numeric parsing
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>23 - scan-until.mc</summary>
-
-### Goal
-
-Process input until a specific terminating character is reached.
-
-### You should understand
-
-- sequential input
-- positions
-- sentinel values
-- loop termination
-- advancing through data
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>24 - skip-whitespace.mc</summary>
-
-### Goal
-
-Advance through input until the next meaningful character.
-
-### You should understand
-
-- character positions
-- whitespace detection
-- repeatedly advancing input
-- lexer preprocessing
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>25 - find-character.mc</summary>
-
-### Goal
-
-Search through a sequence for a particular character.
-
-### You should understand
-
-- linear searching
-- positions
-- comparison
-- stopping when a match is found
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>26 - copy-bytes.mc</summary>
-
-### Goal
-
-Copy a sequence of bytes from one location to another.
-
-### You should understand
-
-- source
-- destination
-- offsets
-- byte-by-byte loops
-- the basic idea behind `memcpy`
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>27 - fill-bytes.mc</summary>
-
-### Goal
-
-Fill an area with the same byte value.
-
-### You should understand
-
-- memory ranges
-- addresses
-- repeated writes
-- the basic idea behind `memset`
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>28 - state-machine.mc</summary>
-
-### Goal
-
-Build a program whose behavior depends on its current state.
-
-### You should understand
-
-Concepts such as:
-
-```text
-START
-NUMBER
-IDENTIFIER
-DONE
-```
-
-You should also understand:
-
-- state variables
-- transitions
-- dispatch
-- why parsers and lexers often behave like state machines
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>29 - command-parser.mc</summary>
-
-### Goal
-
-Recognize simple textual commands.
-
-### You should understand
-
-- comparing input
-- command recognition
-- dispatch
-- separating input parsing from command execution
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>30 - mini-tokenizer.mc</summary>
-
-### Goal
-
-Break simple MicroC source into meaningful pieces.
-
-### Example concept
-
-```text
-I64 x = 42
-```
-
-should conceptually contain:
-
-```text
-keyword
-identifier
-operator
-number
-```
-
-### You should understand
-
-- tokens
-- identifiers
-- keywords
-- numbers
-- operators
-- whitespace
-
-### Code
-
-```mc
-```
-
-</details>
-
-</details>
-
----
-
-<details>
-<summary><strong>04 - Compiler Internals</strong></summary>
-
-Start implementing the same kinds of components found inside a real compiler.
-
----
-
-<details>
-<summary>31 - next-char.mc</summary>
-
-### Goal
-
-Advance through source code one character at a time.
-
-### You should understand
-
-- source position
-- current character
-- advancing a pointer or index
-- end-of-file handling
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>32 - peek-char.mc</summary>
-
-### Goal
-
-Inspect the next character without consuming it.
-
-### You should understand
-
-The difference between:
-
-```text
-current character
-next character
-source position
-```
-
-You should also understand why a lexer sometimes needs lookahead.
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>33 - read-number-token.mc</summary>
-
-### Goal
-
-Read an entire numeric token from source code.
-
-### You should understand
-
-- `is_digit`
-- `next_char`
-- `parse_number`
-- where a number starts
-- where a number ends
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>34 - read-identifier.mc</summary>
-
-### Goal
-
-Read identifiers such as variable and function names.
-
-### Examples
-
-```text
-x
-counter
-kernel_main
-parse_number
-```
-
-### You should understand
-
-- valid identifier characters
-- identifier boundaries
-- source positions
-- storing characters while scanning
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>35 - keyword-check.mc</summary>
-
-### Goal
-
-Determine whether an identifier is a MicroC keyword.
-
-### Examples
-
-```text
-fn
-if
-else
-while
-I64
-```
-
-### You should understand
-
-- identifiers
-- keywords
-- comparison
-- token types
-- why lexers distinguish keywords from names
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>36 - token-loop.mc</summary>
-
-### Goal
-
-Continue producing tokens until the source ends.
-
-### You should understand
-
-Conceptually:
-
-```text
-while source remains
-    get next token
-    process token
-```
-
-You should also understand:
-
-- EOF
-- lexer state
-- token streams
-- advancing correctly
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>37 - variable-table.mc</summary>
-
-### Goal
-
-Store information about declared variables.
-
-### Example concept
-
-```text
-x       -> slot 0
-y       -> slot 1
-counter -> slot 2
-```
-
-### You should understand
-
-- symbol tables
-- variable names
-- slots or offsets
-- compiler state
-- declaration tracking
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>38 - find-variable.mc</summary>
-
-### Goal
-
-Search the variable table for an existing variable.
-
-### You should understand
-
-- symbol lookup
-- searching
-- identifiers
-- what should happen when a symbol does not exist
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>39 - emit-byte.mc</summary>
-
-### Goal
-
-Write one byte into compiler output.
-
-### You should understand
-
-- machine code consists of bytes
-- output position
-- writing binary output
-- incrementing the output position
-- why code generators need primitive emit functions
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>40 - emit-instruction.mc</summary>
-
-### Goal
-
-Construct a machine instruction from multiple bytes.
-
-### You should understand
-
-- opcodes
-- operands
-- immediates
-- instruction encoding
-- calling `emit_byte` multiple times
-- x86-64 instructions are encoded as byte sequences
-
-### Code
-
-```mc
-```
-
-</details>
-
-</details>
-
----
-
-<details>
-<summary><strong>05 - Kernel</strong></summary>
-
-Use MicroC for low-level code that resembles functions inside SuperNovaOS.
-
----
-
-<details>
-<summary>41 - memory-write.mc</summary>
-
-### Goal
-
-Write a value to a specific memory address.
-
-### You should understand
-
-- memory addresses
-- bytes
-- address and value are different things
-- direct memory access
-- why kernels need memory operations
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>42 - memory-read.mc</summary>
-
-### Goal
-
-Read a value from a specific memory address.
-
-### You should understand
-
-- addresses
-- reading versus writing
-- returned values
-- memory-mapped data
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>43 - vga-character.mc</summary>
-
-### Goal
-
-Write one character directly into VGA text memory.
-
-### You should understand
-
-- VGA text memory begins at `0xB8000`
-- characters are stored as bytes
-- VGA attributes
-- character cells
-- memory-mapped display output
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>44 - kernel-putc.mc</summary>
-
-### Goal
-
-Create a kernel function that prints one character at the current cursor position.
-
-### You should understand
-
-- VGA text memory
-- cursor position
-- rows and columns
-- moving to the next character cell
-- persistent kernel state
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>45 - kernel-newline.mc</summary>
-
-### Goal
-
-Teach your character output system how to handle a newline.
-
-### You should understand
-
-- rows
-- columns
-- screen width
-- resetting the column
-- moving to the next row
-- newline character handling
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>46 - clear-screen.mc</summary>
-
-### Goal
-
-Clear every character cell on a text-mode screen.
-
-### You should understand
-
-- VGA memory layout
-- screen dimensions
-- loops
-- repeated memory writes
-- resetting cursor state
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>47 - serial-putc.mc</summary>
-
-### Goal
-
-Send a character through a serial port for kernel debugging.
-
-### You should understand
-
-- I/O ports are different from normal RAM
-- COM1
-- port reads and writes
-- hardware status
-- why kernels use serial debugging
-- why QEMU can redirect serial output to a terminal
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>48 - keyboard-state.mc</summary>
-
-### Goal
-
-Convert keyboard input information into something usable by the kernel.
-
-### You should understand
-
-- keyboard scancodes
-- key presses
-- ASCII characters
-- hardware input versus text
-- keyboard state
-- mapping one representation into another
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>49 - clock-counter.mc</summary>
-
-### Goal
-
-Implement the software logic behind a digital clock.
-
-### You should understand
-
-- ticks
-- seconds
-- minutes
-- hours
-- counters overflowing into larger units
-- how timer interrupts can later drive this logic
-
-### Example concept
-
-```text
-59 seconds
-+ 1 tick
-↓
-0 seconds
-+ 1 minute
-```
-
-### Code
-
-```mc
-```
-
-</details>
-
-<details>
-<summary>50 - mini-compiler-kernel.mc</summary>
-
-### Goal
-
-Combine what you have learned into one final systems-programming project.
-
-Build a very small compiler-like pipeline.
-
-### You should understand
-
-```text
-source
-  ↓
+MicroC source
+      ↓
 characters
-  ↓
-lexer
-  ↓
+      ↓
 tokens
-  ↓
-parser logic
-  ↓
-output
+      ↓
+parser
+      ↓
+variables / symbol tables
+      ↓
+machine-code emitter
+      ↓
+native x86
 ```
 
-### Before attempting this
+Good projects after the 50 examples:
 
-You should be comfortable with:
+- build a tokenizer without looking at the solution
+- build a tiny expression parser
+- emit several x86 instructions
+- build a small allocator
+- build a text terminal
+- build a framebuffer renderer
+- build a small software 3D engine
+- build a tiny compiler from scratch
+- reverse engineer `compiler.mc`
+- rebuild parts of MicroC from memory
+- build kernel components in MicroC
 
-- functions
-- variables
-- loops
-- conditions
-- ASCII
-- source positions
-- tokens
-- identifiers
-- numeric parsing
-- symbol lookup
-- binary output
-- memory
-- byte operations
-- state machines
+The final goal is not to memorize these files line by line.
 
-The goal is **not** to rewrite the complete MicroC compiler.
-
-The goal is to understand enough of the process that the real `compiler.mc` no longer looks mysterious.
-
-### Code
-
-```mc
-```
-
-</details>
-
-</details>
-
----
-
-# After exercise 50
-
-You should be able to open real MicroC or SuperNovaOS code and investigate functions such as:
-
-```text
-is_digit()
-next_char()
-next_token()
-parse_number()
-parse_statement()
-find_variable()
-emit_byte()
-memcpy()
-memset()
-putc()
-serial_putc()
-keyboard_read()
-clock_update()
-```
-
-Instead of asking only:
-
-> What code do I need?
-
-you should increasingly be able to ask:
-
-> What state does this function need?
-
-> What does it receive?
-
-> What does it modify?
-
-> What should it return?
-
-> What hardware or memory does it interact with?
-
-> Which smaller functions should it be built from?
-
-That is the point of this repository.
-
----
-
-# Rule
-
-For every exercise:
-
-1. Read the requirements.
-2. Try to design the algorithm yourself.
-3. Write the MicroC implementation.
-4. Test it.
-5. Fix your own errors first.
-6. Explain to yourself why every line exists.
-7. Add the finished implementation to the empty code block in this README.
-8. Only then continue to the next exercise.
-
-By exercise 50, the goal is not simply to **know MicroC syntax**.
-
-The goal is to **think in MicroC**.
+The goal is to understand the concepts well enough that you can create your own versions without needing the examples.
