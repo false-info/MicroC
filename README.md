@@ -1,698 +1,348 @@
 # MicroC
 
-<p align="center">
-  <b>Small systems language. Self-hosted compiler. Direct x86 output.</b>
-</p>
+**A small self-hosted systems language with direct x86 code generation.**
 
-<p align="center">
-  MicroC keeps the distance between source code and the processor deliberately short.
-  The compiler is written in MicroC and emits native machine code without using LLVM.
-</p>
+MicroC is built to keep the path from source code to machine code short. The compiler is written in MicroC, emits native x86 code directly, and does not use LLVM.
 
----
+The project is aimed at systems programming, compiler work, low-level experiments and eventually a daily-use operating system written largely in MicroC.
 
-## Architecture targets
+## Current syntax
 
-MicroC keeps architecture selection inside `head(...)`.
+The repository now uses the current top-level syntax.
 
 ```mc
-head(asm-x86-16 custom) {
+head(custom)
+
+fn main() {
+    pin("Hello from MicroC!\n")
+    return 0
+}
+```
+
+Feature heads are separate top-level statements:
+
+```mc
+head(custom)
+head(math)
+head(time)
+
+fn main() {
+    F64 value = math_sqrt(144.0)
+    pin("sqrt = %F64\n", value)
+
+    sleep_ms(100)
+    return 0
+}
+```
+
+Old code that wraps the whole source file inside:
+
+```mc
+head(custom) {
     ...
 }
 ```
 
-```mc
-head(asm-x86-32 custom) {
-    ...
-}
+is legacy syntax and should not be used for new MicroC programs.
+
+## Build and run
+
+Compile a hosted program:
+
+```bash
+./mcc program.mc -o program
+./program
 ```
 
-```mc
-head(asm-x86-64 custom) {
-    ...
-}
-```
-
-The normal language layer is enabled with `custom`.  
-The architecture feature selects the integrated x86 mode available to the source file.
-
-<table>
-<tr>
-<td>
-
-<table>
-<tr><td align="center"><b>x86-16</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>real-mode / small bare-metal work</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td align="center">→</td>
-<td>
-
-<table>
-<tr><td align="center"><b>x86-32</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>32-bit protected-mode target</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td align="center">→</td>
-<td>
-
-<table>
-<tr><td align="center"><b>x86-64</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>native 64-bit target</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-</tr>
-</table>
-
----
-
-## Compiler path
-
-The normal compile path is intentionally compact. Source is scanned, parsed, and lowered directly into machine code.
-
-<table>
-<tr>
-<td>
-
-<table>
-<tr><td align="center"><b>source.mc</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>MicroC source</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td align="center">→</td>
-<td>
-
-<table>
-<tr><td align="center"><b>LEXER</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>characters → tokens</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td align="center">→</td>
-<td>
-
-<table>
-<tr><td align="center"><b>PARSER</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>tokens → structure</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td align="center">→</td>
-<td>
-
-<table>
-<tr><td align="center"><b>EMITTER</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>structure → x86</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-</tr>
-</table>
-
-<p align="center">
-  <sub>No LLVM backend · no generated assembly file in the normal path · direct native output</sub>
-</p>
-
----
-
-## A small syntax tree
-
-For:
-
-```mc
-I64 result = 2 + 3 * 4
-```
-
-the parser sees structure, not just a line of text.
-
-<table>
-<tr>
-<td></td>
-<td></td>
-<td>
-
-<table>
-<tr><td align="center"><b>+</b></td><td rowspan="2">▓</td></tr>
-<tr><td>▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td></td>
-<td></td>
-</tr>
-
-<tr>
-<td></td>
-<td align="center">╱</td>
-<td></td>
-<td align="center">╲</td>
-<td></td>
-</tr>
-
-<tr>
-<td>
-
-<table>
-<tr><td align="center"><b>2</b></td><td rowspan="2">▓</td></tr>
-<tr><td>▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td></td>
-<td></td>
-<td></td>
-<td>
-
-<table>
-<tr><td align="center"><b>*</b></td><td rowspan="2">▓</td></tr>
-<tr><td>▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-</tr>
-
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td align="center">╱</td>
-<td align="center">╲</td>
-</tr>
-
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td>
-
-<table>
-<tr><td align="center"><b>3</b></td><td rowspan="2">▓</td></tr>
-<tr><td>▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td>
-
-<table>
-<tr><td align="center"><b>4</b></td><td rowspan="2">▓</td></tr>
-<tr><td>▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-</tr>
-</table>
-
-<p align="center"><code>2 + (3 * 4)</code></p>
-
-That precedence is part of the parser. Multiplication binds before addition unless parentheses change the structure.
-
----
-
-## Program structure
-
-A MicroC source file has one `head(...)` block. From there the parser recognizes functions, statements, expressions, and optional integrated assembly.
-
-<table>
-<tr>
-<td></td>
-<td colspan="5">
-
-<table>
-<tr><td align="center"><b>program</b></td><td rowspan="2">▓</td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-</tr>
-
-<tr>
-<td></td>
-<td colspan="5" align="center">↓</td>
-</tr>
-
-<tr>
-<td></td>
-<td colspan="5">
-
-<table>
-<tr><td align="center"><b>head(...)</b></td><td rowspan="2">▓</td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-</tr>
-
-<tr>
-<td align="center">↙</td>
-<td align="center">↓</td>
-<td align="center">↓</td>
-<td align="center">↓</td>
-<td align="center">↘</td>
-</tr>
-
-<tr>
-<td>
-
-<table>
-<tr><td align="center"><b>architecture</b></td><td rowspan="3">▓</td></tr>
-<tr><td><sub>asm-x86-16<br>asm-x86-32<br>asm-x86-64</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td>
-
-<table>
-<tr><td align="center"><b>functions</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>fn</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td>
-
-<table>
-<tr><td align="center"><b>control</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>if · while</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td>
-
-<table>
-<tr><td align="center"><b>data</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>I8 … U64 · F64 · Bool</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td>
-
-<table>
-<tr><td align="center"><b>asm</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>(asmb) … (asme)</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-</tr>
-</table>
-
----
-
-## Function structure
-
-```mc
-fn add(I64 a, I64 b) {
-    return a + b
-}
-```
-
-<table>
-<tr>
-<td>
-
-<table>
-<tr><td align="center"><b>fn</b></td><td rowspan="2">▓</td></tr>
-<tr><td>▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td align="center">→</td>
-<td>
-
-<table>
-<tr><td align="center"><b>add</b></td><td rowspan="2">▓</td></tr>
-<tr><td>▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td align="center">→</td>
-<td>
-
-<table>
-<tr><td align="center"><b>parameters</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>I64 a · I64 b</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td align="center">→</td>
-<td>
-
-<table>
-<tr><td align="center"><b>block</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>return a + b</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-</tr>
-</table>
-
----
-
-## Single-pass style
-
-MicroC does not need to build a huge full-program tree before useful code can be emitted. Parsing and code generation stay close together.
-
-<table>
-<tr>
-<td>
-
-<table>
-<tr><td align="center"><b>1 · token</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>read next token</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td align="center">→</td>
-<td>
-
-<table>
-<tr><td align="center"><b>2 · syntax</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>recognize construct</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td align="center">→</td>
-<td>
-
-<table>
-<tr><td align="center"><b>3 · emit</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>write machine code</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td align="center">→</td>
-<td>
-
-<table>
-<tr><td align="center"><b>4 · patch</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>resolve later if needed</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-</tr>
-</table>
-
----
-
-## MicroC next to other languages
-
-This is a design comparison, not a benchmark chart. Performance depends on the program and compiler quality, so the table avoids fake percentage claims.
-
-<table>
-<tr>
-<th>Language</th>
-<th>Execution / compilation model</th>
-<th>Machine control</th>
-<th>Compiler complexity</th>
-<th>Portability</th>
-<th>Typical strength</th>
-</tr>
-
-<tr>
-<td><b>x86-64 Assembly</b></td>
-<td>Written directly as machine-level instructions</td>
-<td align="center">Maximum</td>
-<td align="center">None as a language compiler</td>
-<td align="center">Low</td>
-<td>Exact instruction-level control</td>
-</tr>
-
-<tr>
-<td><b>C</b></td>
-<td>Native compiler, usually through a mature optimizer and backend</td>
-<td align="center">Very high</td>
-<td align="center">High</td>
-<td align="center">High</td>
-<td>Portable low-level systems software</td>
-</tr>
-
-<tr>
-<td><b>MicroC</b></td>
-<td>Direct native x86 emission from a small self-hosted compiler</td>
-<td align="center">Very high</td>
-<td align="center">Small by design</td>
-<td align="center">x86-focused</td>
-<td>Understanding the whole source-to-machine path</td>
-</tr>
-
-<tr>
-<td><b>HolyC</b></td>
-<td>Native compiled language integrated tightly with TempleOS</td>
-<td align="center">High</td>
-<td align="center">Compact / integrated</td>
-<td align="center">Low</td>
-<td>Fast interactive systems programming inside TempleOS</td>
-</tr>
-
-<tr>
-<td><b>Python</b></td>
-<td>Normally interpreted through CPython bytecode and runtime machinery</td>
-<td align="center">Low</td>
-<td align="center">Hidden from user</td>
-<td align="center">Very high</td>
-<td>Fast development and high-level scripting</td>
-</tr>
-</table>
-
-### Rough mental model
-
-<table>
-<tr>
-<td>
-
-<table>
-<tr><td align="center"><b>Assembly</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>you choose the instructions</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td align="center">← more direct</td>
-<td>
-
-<table>
-<tr><td align="center"><b>MicroC</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>small compiler → native x86</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td align="center">↔</td>
-<td>
-
-<table>
-<tr><td align="center"><b>C</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>native + mature optimization</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td align="center">→ more abstraction</td>
-<td>
-
-<table>
-<tr><td align="center"><b>Python</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>runtime + bytecode</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-</tr>
-</table>
-
-HolyC sits in an unusual place: it is native and low-level, but it was designed as part of a single integrated operating environment rather than as a portable general-purpose toolchain.
-
----
-
-## Self-hosting
-
-The compiler source is `compiler.mc`.
+Self-host the compiler:
 
 ```bash
 ./mcc compiler.mc -o mcc-new
 chmod +x mcc-new
-./mcc-new compiler.mc -o mcc-second
+./mcc-new compiler.mc -o mcc-stage2
 ```
 
-<table>
-<tr>
-<td>
+The main compiler source is [`compiler.mc`](compiler.mc).
 
-<table>
-<tr><td align="center"><b>mcc</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>current compiler</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
+## Core language
 
-</td>
-<td align="center">compiles →</td>
-<td>
-
-<table>
-<tr><td align="center"><b>compiler.mc</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>compiler source</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td align="center">→</td>
-<td>
-
-<table>
-<tr><td align="center"><b>mcc-new</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>compiler made by MicroC</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-</tr>
-</table>
-
-<p align="center">↓</p>
-
-<table>
-<tr>
-<td>
-
-<table>
-<tr><td align="center"><b>mcc-new</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>generated compiler</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td align="center">compiles →</td>
-<td>
-
-<table>
-<tr><td align="center"><b>compiler.mc</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>same source</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-<td align="center">→</td>
-<td>
-
-<table>
-<tr><td align="center"><b>mcc-second</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>second generation</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
-
-</td>
-</tr>
-</table>
-
-If the compiler generated by MicroC can compile `compiler.mc` again, the compiler is self-hosting.
-
----
-
-## Inline x86
+MicroC supports typed variables, functions, expressions, branches and loops.
 
 ```mc
-head(asm-x86-16) {
-    (asmb) {
-        ...
-    } (asme)
+head(custom)
+
+fn add(I64 a, I64 b) {
+    return a + b
+}
+
+fn main() {
+    I64 x = 20
+    I64 y = 22
+    I64 result = add(x, y)
+
+    if (result == 42) {
+        pin("correct\n")
+    }
+    else {
+        pin("wrong\n")
+    }
+
+    return 0
 }
 ```
 
+Current core types include:
+
+- `I8`, `I16`, `I32`, `I64`
+- `U8`, `U16`, `U32`, `U64`
+- lowercase aliases such as `i64` and `u64`
+- `usize`
+- `Ptr`
+- `F64`
+- `Bool` / `bool`
+
+## Official heads
+
+MicroC currently recognizes these feature heads:
+
+| Head | Purpose |
+| --- | --- |
+| `custom` | normal MicroC functions and language syntax |
+| `memory` | memory and managed allocation helpers |
+| `input` | hosted input |
+| `file` | file I/O |
+| `network` / `networking` | networking |
+| `time` | clocks and sleeping |
+| `math` | floating-point math |
+| `graphics` | software graphics and frame presentation |
+| `audio` | audio feature namespace |
+| `thread` | threading feature namespace |
+| `crypto` | crypto feature namespace |
+| `process` | process and argument helpers |
+| `game` | game feature namespace |
+| `safe` | safe-mode restrictions |
+| `system` | CPU and low-level system operations |
+
+Only enable the heads a file needs.
+
+## Memory
+
+The `memory` head provides raw and managed memory tools.
+
 ```mc
-head(asm-x86-32) {
-    (asmb) {
-        ...
-    } (asme)
+head(custom)
+head(memory)
+
+fn main() {
+    I64 buffer = safe_alloc(16)
+
+    safe_write64(buffer, 0, 1234)
+    I64 value = safe_read64(buffer, 0)
+
+    pin("value = %I64\n", value)
+
+    safe_free(buffer)
+    return 0
 }
 ```
 
+Managed helpers include allocation, reallocation, freeing and bounds-checked reads and writes.
+
+## Math
+
+The current math API includes:
+
+- `math_abs`
+- `math_sqrt`
+- `math_min`
+- `math_max`
+- `math_clamp`
+- `math_lerp`
+- `math_hypot`
+- `math_inv_sqrt`
+- `math_pi`
+- `math_tau`
+- `math_e`
+- `math_sin`
+- `math_cos`
+- `math_atan2`
+- degree/radian conversion
+
+Example:
+
 ```mc
-head(asm-x86-64) {
-    (asmb) {
-        cli
-        hlt
-    } (asme)
+head(custom)
+head(math)
+
+fn main() {
+    F64 x = 3.0
+    F64 y = 4.0
+    F64 distance = math_hypot(x, y)
+
+    pin("distance = %F64\n", distance)
+    return 0
 }
 ```
 
-The integrated assembly path is intended to keep low-level code inside the same source format rather than handing it to a separate assembler.
+## Time
 
----
+Hosted time helpers include Unix time, monotonic clocks and sleeping.
 
-## Output
+```mc
+head(custom)
+head(time)
 
-<table>
-<tr>
-<td></td>
-<td>
+fn main() {
+    I64 before = time_monotonic_ms()
 
-<table>
-<tr><td align="center"><b>x86 machine code</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>emitted by MicroC</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
+    sleep_ms(250)
 
-</td>
-<td></td>
-</tr>
+    I64 after = time_monotonic_ms()
+    pin("elapsed = %I64 ms\n", after - before)
+    return 0
+}
+```
 
-<tr>
-<td align="center">↙</td>
-<td></td>
-<td align="center">↘</td>
-</tr>
+## Graphics
 
-<tr>
-<td>
+MicroC has a software framebuffer graphics API with:
 
-<table>
-<tr><td align="center"><b>ELF64</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>Linux executable</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
+- `gfx_open`
+- `gfx_close`
+- `gfx_buffer`
+- `gfx_width`
+- `gfx_height`
+- `gfx_pitch`
+- `gfx_clear`
+- `gfx_pixel`
+- `gfx_line`
+- `gfx_rect_fill`
+- `gfx_bind_target`
+- `gfx_present`
+- `gfx_rgb`
+- `gfx_rgba`
+- `gfx_save_bmp`
 
-</td>
-<td></td>
-<td>
+A live animation can be written directly in MicroC:
 
-<table>
-<tr><td align="center"><b>raw .bin</b></td><td rowspan="3">▓</td></tr>
-<tr><td align="center"><sub>bare-metal output</sub></td></tr>
-<tr><td>▓▓▓▓▓▓▓▓▓▓▓</td></tr>
-</table>
+```mc
+head(custom)
+head(graphics)
+head(time)
 
-</td>
-</tr>
-</table>
+fn main() {
+    gfx_open(640, 360)
 
----
+    I64 running = 1
+    I64 x = 0
 
-## Project direction
+    while (running != 0) {
+        gfx_clear(gfx_rgb(0, 0, 0))
+        gfx_rect_fill(x, 160, 30, 30, gfx_rgb(255, 70, 20))
 
-MicroC is not trying to win by collecting the largest feature list.
+        if (gfx_present() < 0) {
+            running = 0
+        }
 
-The project is about keeping the language, compiler, and generated code close enough together that the complete system can still be understood.
+        x = x + 2
 
-That makes the design question fairly simple:
+        if (x > 640) {
+            x = 0
+        }
 
-> How much systems-programming power can fit inside a compiler that is still small enough to take apart and understand?
+        sleep_ms(16)
+    }
+
+    gfx_close()
+    return 0
+}
+```
+
+The current hosted Linux window backend presents frames through `ffplay`, so FFmpeg is required for the live graphics window.
+
+## Integrated x86
+
+MicroC has integrated x86 modes for low-level work:
+
+```mc
+head(asm-x86-16)
+```
+
+```mc
+head(asm-x86-32)
+```
+
+```mc
+head(asm-x86-64)
+```
+
+The normal language layer is enabled with `head(custom)`.
+
+## Compiler path
+
+```text
+source.mc
+   |
+   v
+ lexer
+   |
+   v
+ parser
+   |
+   v
+ x86 emitter
+   |
+   v
+native output
+```
+
+The compiler keeps parsing and code generation close together. The normal path does not generate an intermediate assembly file and does not use LLVM.
+
+## Repository layout
+
+```text
+MicroC/
+├── compiler.mc
+├── mcc
+├── bootstrap.zig
+├── README.md
+├── compiler-+-OS-address-helper.md
+├── microC-example/
+│   ├── README.md
+│   ├── compiler-instructions.md
+│   ├── os-instructions.md
+│   ├── 01-basics/
+│   ├── 02-functions/
+│   ├── 03-algorithms/
+│   ├── 04-compiler/
+│   └── 05-kernel/
+├── kernel-mc/
+└── graphics-slop/
+```
+
+## Learn MicroC
+
+The [`microC-example`](microC-example/) directory contains 50 examples using the current syntax.
+
+Start with:
+
+```bash
+./mcc microC-example/01-basics/01-hello.mc -o hello
+./hello
+```
+
+Then continue in numeric order.
+
+The path is:
+
+```text
+01-10  basics
+11-20  functions
+21-30  algorithms
+31-40  compiler concepts
+41-50  kernel concepts
+```
+
+## Project status
+
+MicroC is experimental and changes quickly. The current compiler source and current examples are the best reference for the language as it exists now.
